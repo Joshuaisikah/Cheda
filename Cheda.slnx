@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Cheda.Core/Cheda.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Cheda.Tests/Cheda.Tests.csproj" />
+  </Folder>
+</Solution>

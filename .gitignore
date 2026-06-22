@@ -1,0 +1,30 @@
+## .NET / Rider
+*.user
+*.suo
+.vs/
+.idea/
+bin/
+obj/
+*.swp
+*.sln.DotSettings.user
+
+## NuGet
+*.nupkg
+*.snupkg
+project.lock.json
+artifacts/
+
+## Test results
+TestResults/
+coverage/
+*.trx
+*.coveragexml
+
+## User real-data fixtures — never commit actual transaction SMS
+tests/**/fixtures/real/
+*.real.json
+*.real.csv
+
+## OS
+.DS_Store
+Thumbs.db
