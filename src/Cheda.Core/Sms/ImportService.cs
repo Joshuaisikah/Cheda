@@ -41,6 +41,13 @@ public sealed class ImportService : IImportService
         return Task.FromResult(Process([message]));
     }
 
+    public async Task<ImportResult> ImportFromXmlAsync(
+        Stream xmlStream, CancellationToken ct = default)
+    {
+        var messages = await Task.Run(() => XmlSmsReader.ReadAll(xmlStream), ct);
+        return Process(messages);
+    }
+
     private ImportResult Process(IReadOnlyList<SmsMessage> messages)
     {
         var newCount     = 0;

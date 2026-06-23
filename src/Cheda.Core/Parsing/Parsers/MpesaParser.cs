@@ -20,10 +20,12 @@ public sealed partial class MpesaParser : ISourceParser
 
     public ParseResult Parse(string sender, string body, DateTimeOffset timestamp)
     {
-        var tx = TryParseSent(body, timestamp)
+        var tx = TryParseSentPaybill(body, timestamp)  // "sent to X for account Y" — match before generic Sent
+            ?? TryParseSent(body, timestamp)
             ?? TryParseReceived(body, timestamp)
-            ?? TryParsePaidTill(body, timestamp)
-            ?? TryParsePaidPaybill(body, timestamp)
+            ?? TryParseBuyGoods(body, timestamp)       // "paid to X. on" — real buy-goods format (no Till number in msg)
+            ?? TryParsePaidTill(body, timestamp)        // legacy: "paid to X Till 123"
+            ?? TryParsePaidPaybill(body, timestamp)     // legacy: "paid to X Paybill 123 account Y"
             ?? TryParseWithdrawn(body, timestamp)
             ?? TryParseDeposit(body, timestamp)
             ?? TryParseAirtime(body, timestamp)
@@ -43,8 +45,38 @@ public sealed partial class MpesaParser : ISourceParser
         return TransactionCodeRegex().IsMatch(body);
     }
 
+    // ── Sent to paybill ("sent to X for account Y") ────────────────────────────
+    // Real format: "Ksh200.00 sent to KPLC PREPAID for account 45136199804 on 9/5/26"
+    // Also matches data bundles: "sent to SAFARICOM DATA BUNDLES for account SAFARICOM DATA BUNDLES"
+    [GeneratedRegex(
+        @"(?<code>[A-Z0-9]{10})\s+Confirmed\.\s+Ksh(?<amount>[\d,]+\.?\d*)\s+sent to\s+(?<counterparty>.+?)\s+for account\s+(?<account>.+?)\s+on\s+\d",
+        RegexOptions.IgnoreCase)]
+    private static partial Regex SentPaybillRegex();
+
+    private static Transaction? TryParseSentPaybill(string body, DateTimeOffset timestamp)
+    {
+        var m = SentPaybillRegex().Match(body);
+        if (!m.Success) return null;
+        var biz     = Normalize(m.Groups["counterparty"].Value);
+        var account = m.Groups["account"].Value.Trim();
+        return new Transaction
+        {
+            TransactionCode = m.Groups["code"].Value,
+            Source = TransactionSource.Mpesa,
+            Amount = ParseAmount(m.Groups["amount"].Value),
+            Type = TransactionType.PaidPaybill,
+            Counterparty = account.Equals(biz, StringComparison.OrdinalIgnoreCase)
+                ? biz                           // e.g. "SAFARICOM DATA BUNDLES for account SAFARICOM DATA BUNDLES"
+                : $"{biz} ({account})",
+            BalanceAfter = ExtractBalance(body),
+            TransactionCost = ExtractCost(body),
+            Timestamp = timestamp,
+            RawMessage = body,
+        };
+    }
+
     // ── Sent money ─────────────────────────────────────────────────────────────
-    // "QGH2XK1A23 Confirmed. Ksh1,000.00 sent to JOHN DOE 0712345678 on 15/6/25 at 10:30 AM. New M-PESA balance is Ksh4,500.00. Transaction cost, Ksh11.00."
+    // "QGH2XK1A23 Confirmed. Ksh1,000.00 sent to JOHN DOE 0712345678 on 15/6/25 at 10:30 AM."
     [GeneratedRegex(
         @"(?<code>[A-Z0-9]{10})\s+Confirmed\.\s+Ksh(?<amount>[\d,]+\.?\d*)\s+sent to\s+(?<counterparty>.+?)\s+on\s+\d",
         RegexOptions.IgnoreCase)]
@@ -60,7 +92,7 @@ public sealed partial class MpesaParser : ISourceParser
             Source = TransactionSource.Mpesa,
             Amount = ParseAmount(m.Groups["amount"].Value),
             Type = TransactionType.Sent,
-            Counterparty = m.Groups["counterparty"].Value.Trim(),
+            Counterparty = Normalize(m.Groups["counterparty"].Value),
             BalanceAfter = ExtractBalance(body),
             TransactionCost = ExtractCost(body),
             Timestamp = timestamp,
@@ -69,9 +101,11 @@ public sealed partial class MpesaParser : ISourceParser
     }
 
     // ── Received money ─────────────────────────────────────────────────────────
-    // "QGH2XK1A23 Confirmed. You have received Ksh500.00 from JANE DOE 0712345678 on 15/6/25 at 2:00 PM. New M-PESA balance is Ksh5,000.00."
+    // "QGH2XK1A23 Confirmed.You have received Ksh500.00 from JANE DOE 0712345678 on 15/6/25 at 2:00 PM."
+    // Note: real messages have no space between "Confirmed." and "You" — \s* handles both.
+    // Masked phones (0716***698) are kept in counterparty as received from M-PESA.
     [GeneratedRegex(
-        @"(?<code>[A-Z0-9]{10})\s+Confirmed\.\s+You have received\s+Ksh(?<amount>[\d,]+\.?\d*)\s+from\s+(?<counterparty>.+?)\s+on\s+\d",
+        @"(?<code>[A-Z0-9]{10})\s+Confirmed\.\s*You have received\s+Ksh(?<amount>[\d,]+\.?\d*)\s+from\s+(?<counterparty>.+?)\s+on\s+\d",
         RegexOptions.IgnoreCase)]
     private static partial Regex ReceivedRegex();
 
@@ -85,15 +119,41 @@ public sealed partial class MpesaParser : ISourceParser
             Source = TransactionSource.Mpesa,
             Amount = ParseAmount(m.Groups["amount"].Value),
             Type = TransactionType.Received,
-            Counterparty = m.Groups["counterparty"].Value.Trim(),
+            Counterparty = Normalize(m.Groups["counterparty"].Value),
             BalanceAfter = ExtractBalance(body),
             Timestamp = timestamp,
             RawMessage = body,
         };
     }
 
-    // ── Pay till (Buy Goods) ────────────────────────────────────────────────────
-    // "QGH2XK1A23 Confirmed. Ksh250.00 paid to JAVA HOUSE Till 123456 on 15/6/25 at 1:15 PM. New M-PESA balance is Ksh3,250.00. Transaction cost, Ksh0.00."
+    // ── Buy Goods (real format — no Till number in message) ────────────────────
+    // Real format: "Ksh100.00 paid to MAXWELL CHEMIST. on 6/5/26 at 5:48 PM."
+    // The period after the merchant name is the discriminator. "via MPAYA" (mobile agent) included.
+    [GeneratedRegex(
+        @"(?<code>[A-Z0-9]{10})\s+Confirmed\.\s+Ksh(?<amount>[\d,]+\.?\d*)\s+paid to\s+(?<counterparty>.+?)\.\s+on\s+\d",
+        RegexOptions.IgnoreCase)]
+    private static partial Regex BuyGoodsRegex();
+
+    private static Transaction? TryParseBuyGoods(string body, DateTimeOffset timestamp)
+    {
+        var m = BuyGoodsRegex().Match(body);
+        if (!m.Success) return null;
+        return new Transaction
+        {
+            TransactionCode = m.Groups["code"].Value,
+            Source = TransactionSource.Mpesa,
+            Amount = ParseAmount(m.Groups["amount"].Value),
+            Type = TransactionType.PaidTill,
+            Counterparty = Normalize(m.Groups["counterparty"].Value),
+            BalanceAfter = ExtractBalance(body),
+            TransactionCost = ExtractCost(body),
+            Timestamp = timestamp,
+            RawMessage = body,
+        };
+    }
+
+    // ── Pay till — legacy (explicit Till number in message) ────────────────────
+    // "QGH2XK1A23 Confirmed. Ksh250.00 paid to JAVA HOUSE Till 123456 on 15/6/25 at 1:15 PM."
     [GeneratedRegex(
         @"(?<code>[A-Z0-9]{10})\s+Confirmed\.\s+Ksh(?<amount>[\d,]+\.?\d*)\s+paid to\s+(?<counterparty>.+?)\s+Till\s+(?<till>\d+)",
         RegexOptions.IgnoreCase)]
@@ -193,9 +253,11 @@ public sealed partial class MpesaParser : ISourceParser
     }
 
     // ── Airtime purchase ────────────────────────────────────────────────────────
-    // "QGH2XK1A23 confirmed. You have bought Ksh50.00 of airtime on 15/6/25 at 7:00 AM. New M-PESA balance is Ksh950.00."
+    // Real: "confirmed.You bought Ksh5.00 of airtime" (no space, no "have")
+    // Also: "confirmed. You have bought Ksh50.00 of airtime" (space + "have")
+    // \s* and (?:have )? handle both variants.
     [GeneratedRegex(
-        @"(?<code>[A-Z0-9]{10})\s+confirmed\.\s+You have bought\s+Ksh(?<amount>[\d,]+\.?\d*)\s+of airtime",
+        @"(?<code>[A-Z0-9]{10})\s+confirmed\.\s*You (?:have )?bought\s+Ksh(?<amount>[\d,]+\.?\d*)\s+of airtime",
         RegexOptions.IgnoreCase)]
     private static partial Regex AirtimeRegex();
 
@@ -317,6 +379,10 @@ public sealed partial class MpesaParser : ISourceParser
 
     [GeneratedRegex(@"Transaction cost,\s+Ksh(?<cost>[\d,]+\.?\d*)", RegexOptions.IgnoreCase)]
     private static partial Regex CostRegex();
+
+    // Collapses double-spaces that M-PESA includes between first name and surname.
+    private static string Normalize(string raw) =>
+        string.Join(' ', raw.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
     private static decimal ParseAmount(string raw) =>
         decimal.Parse(raw.Replace(",", ""), System.Globalization.CultureInfo.InvariantCulture);

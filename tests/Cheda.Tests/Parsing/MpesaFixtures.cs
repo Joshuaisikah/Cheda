@@ -48,6 +48,46 @@ internal static class MpesaFixtures
         "ZJW3DH0J12 Confirmed. Your transaction of Ksh500.00 to JOHN DOE has been reversed." +
         " The reversal for QGH2XK1A23 is complete. New M-PESA balance is Ksh5,500.00.";
 
+    // ── Real-world variants discovered from SMS backup ─────────────────────────
+
+    // Paybill via "sent to X for account Y" (KPLC, Equity, data bundles, Tunukiwa)
+    public const string SentPaybill =
+        "UE92Q3N5H7 Confirmed. Ksh200.00 sent to KPLC PREPAID for account 45136199804 on 9/5/26 at 11:23 AM" +
+        " New M-PESA balance is Ksh3,331.90. Transaction cost, Ksh5.00.Amount you can transact within the day is 499,800.00.";
+
+    public const string SentPaybillDataBundles =
+        "UF32Q6I8Z1 Confirmed. Ksh20.00 sent to SAFARICOM DATA BUNDLES for account SAFARICOM DATA BUNDLES on 3/6/26 at 6:08 PM." +
+        " New M-PESA balance is Ksh8,737.01. Transaction cost, Ksh0.00.";
+
+    // Buy Goods / Till — real format: period after merchant name, no till number in message
+    public const string BuyGoods =
+        "UE62Q3C3MK Confirmed. Ksh100.00 paid to MAXWELL CHEMIST. on 6/5/26 at 5:48 PM." +
+        "New M-PESA balance is Ksh5,764.90. Transaction cost, Ksh0.00.";
+
+    public const string BuyGoodsViaAgent =
+        "UEB2Q3WSKF Confirmed. Ksh150.00 paid to JUSTUS Mokoya via MPAYA. on 11/5/26 at 5:24 PM." +
+        "New M-PESA balance is Ksh2,231.90. Transaction cost, Ksh0.00.";
+
+    // Airtime short form: "confirmed.You bought" (no space after period, no "have")
+    public const string AirtimeShort =
+        "UF12Q6AORB confirmed.You bought Ksh5.00 of airtime on 1/6/26 at 7:46 PM." +
+        "New M-PESA balance is Ksh518.01. Transaction cost, Ksh0.00.";
+
+    // Received with no space after "Confirmed." and no "at" in time
+    public const string ReceivedNoSpace =
+        "UE92Q3Q454 Confirmed.You have received Ksh8,000.00 from ZIIDI on 9/5/26 10:00 PM." +
+        " New M-PESA balance is Ksh9,723.90.";
+
+    // Received with masked phone number (privacy-redacted by M-PESA for received from strangers)
+    public const string ReceivedMaskedPhone =
+        "UFF2Q7WPTV Confirmed.You have received Ksh5,000.00 from Joshua Martin 0716***698 on 15/6/26 at 6:31 PM" +
+        "  New M-PESA balance is Ksh5,004.00.";
+
+    // Sent to person with no phone number (contact saved in M-PESA)
+    public const string SentNoPhone =
+        "UE72Q3E6P3 Confirmed. Ksh50.00 sent to Keneth Wambu on 7/5/26 at 7:58 AM." +
+        " New M-PESA balance is Ksh5,482.90. Transaction cost, Ksh0.00.";
+
     public const string OtpMessage =
         "Your M-PESA PIN reset OTP is 123456. Do not share this code with anyone.";
 

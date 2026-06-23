@@ -1,3 +1,4 @@
+using System.Text;
 using Cheda.Core.Categorization;
 using Cheda.Core.Parsing;
 using Cheda.Core.Parsing.Parsers;
@@ -219,6 +220,52 @@ public sealed class ImportServiceTests
         await service.ProcessSingleAsync(FakeSmsReader.Mpesa(SentSms, simSlot: null));
 
         repo.GetAll().Single().SimSlot.Should().BeNull();
+    }
+
+    // ── XML import ───────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ImportFromXmlAsync_imports_mpesa_messages_skips_other_senders()
+    {
+        const string xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <smses>
+              <sms address="MPESA" date="1778066364125" body="UE62Q3B5VZ Confirmed. Ksh200.00 sent to FAITH GACHEMI 0797460219 on 6/5/26 at 2:19 PM. New M-PESA balance is Ksh5,914.90. Transaction cost, Ksh7.00." />
+              <sms address="MPESA" date="1778066364126" body="Your M-PESA PIN reset OTP is 123456. Do not share." />
+              <sms address="SAFARICOM" date="1778066364127" body="Not a financial message." />
+            </smses>
+            """;
+        using var stream  = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+        var       service = BuildService(new FakeSmsReader());
+
+        var result = await service.ImportFromXmlAsync(stream);
+
+        result.NewTransactions.Should().Be(1);   // only the Sent transaction
+        result.Unparseable.Should().Be(2);        // OTP (no tx code) + SAFARICOM (unknown sender)
+    }
+
+    [Fact]
+    public async Task ImportFromXmlAsync_timestamp_comes_from_date_attribute()
+    {
+        // date="1778066364125" → 2026-05-06 11:19:24 UTC
+        const string xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <smses>
+              <sms address="MPESA" date="1778066364125" body="UE62Q3B5VZ Confirmed. Ksh200.00 sent to FAITH GACHEMI 0797460219 on 6/5/26 at 2:19 PM. New M-PESA balance is Ksh5,914.90. Transaction cost, Ksh7.00." />
+            </smses>
+            """;
+        using var stream  = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+        var       repo    = new InMemoryTransactionRepository();
+        var       engine  = new ParserEngine();
+        engine.Register(new MpesaParser());
+        var svc = new ImportService(
+            new FakeSmsReader(), engine,
+            new RuleBasedCategorizer(new InMemoryCategorizerStore()), repo);
+
+        await svc.ImportFromXmlAsync(stream);
+
+        var tx = repo.GetAll().Single();
+        tx.Timestamp.ToUnixTimeMilliseconds().Should().Be(1778066364125L);
     }
 
     // ── Total accounting ─────────────────────────────────────────────────────

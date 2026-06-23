@@ -15,4 +15,10 @@ public interface IImportService
     /// No-ops silently if the message is not a recognizable financial transaction.
     /// </summary>
     Task<ImportResult> ProcessSingleAsync(SmsMessage message, CancellationToken ct = default);
+
+    /// <summary>
+    /// Imports historical transactions from an SMS Backup &amp; Restore XML export.
+    /// The XML must follow the standard &lt;smses&gt;&lt;sms address="MPESA" date="ms_epoch" body="..." /&gt; format.
+    /// </summary>
+    Task<ImportResult> ImportFromXmlAsync(Stream xmlStream, CancellationToken ct = default);
 }
