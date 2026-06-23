@@ -43,10 +43,11 @@ public sealed class ImportService : IImportService
 
     private ImportResult Process(IReadOnlyList<SmsMessage> messages)
     {
-        var newCount    = 0;
-        var dupCount    = 0;
+        var newCount     = 0;
+        var dupCount     = 0;
         var unparseCount = 0;
-        var reviewQueue = new List<ReviewItem>();
+        var reviewQueue  = new List<ReviewItem>();
+        var inserted     = new List<Models.Transaction>();
 
         foreach (var sms in messages)
         {
@@ -80,6 +81,7 @@ public sealed class ImportService : IImportService
             }
 
             newCount++;
+            inserted.Add(tx);
 
             // Flag for batched review if the categorizer is uncertain.
             // The UI presents all flagged items as a single review screen, not
@@ -101,6 +103,7 @@ public sealed class ImportService : IImportService
             Duplicates      = dupCount,
             Unparseable     = unparseCount,
             ReviewQueue     = reviewQueue,
+            Inserted        = inserted,
         };
     }
 }

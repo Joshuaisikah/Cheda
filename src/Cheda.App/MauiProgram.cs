@@ -2,6 +2,7 @@ using Cheda.App.Storage;
 using Cheda.Core.Bills;
 using Cheda.Core.Budgets;
 using Cheda.Core.Categorization;
+using Cheda.Core.Notifications;
 using Cheda.Core.Parsing;
 using Cheda.Core.Parsing.Parsers;
 using Cheda.Core.Sms;
@@ -26,6 +27,7 @@ public static class MauiProgram
         RegisterStorage(builder.Services);
         RegisterCore(builder.Services);
         RegisterSms(builder.Services);
+        RegisterNotifications(builder.Services);
 
 #if DEBUG
         builder.Logging.AddDebug();
@@ -69,5 +71,19 @@ public static class MauiProgram
             Cheda.App.Platforms.Android.Sms.AndroidSmsReader>();
 #endif
         services.AddSingleton<IImportService, Cheda.Core.Sms.ImportService>();
+    }
+
+    private static void RegisterNotifications(IServiceCollection services)
+    {
+        services.AddSingleton<NotificationSettingsService>();
+        services.AddSingleton<IAlertEvaluator, AlertEvaluator>();
+        services.AddSingleton<AlertCoordinator>();
+
+#if ANDROID
+        services.AddSingleton<INotificationService,
+            Cheda.App.Platforms.Android.Notifications.AndroidNotificationService>();
+        services.AddSingleton<
+            Cheda.App.Platforms.Android.Notifications.DigestScheduler>();
+#endif
     }
 }

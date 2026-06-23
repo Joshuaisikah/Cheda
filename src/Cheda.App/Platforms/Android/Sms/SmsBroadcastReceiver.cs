@@ -1,4 +1,5 @@
 using Android.Content;
+using Cheda.Core.Notifications;
 using Cheda.Core.Sms;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.ApplicationModel;
@@ -8,8 +9,8 @@ namespace Cheda.App.Platforms.Android.Sms;
 /// <summary>
 /// Listens for incoming SMS messages in real time.
 /// When a message arrives from a known financial sender (e.g. MPESA), it is immediately
-/// piped through the ImportService pipeline (parse → categorize → persist).
-/// Phase 9 will add local notifications on top of this callback.
+/// piped through the ImportService pipeline (parse → categorize → persist), then
+/// AlertCoordinator evaluates and dispatches any relevant notifications.
 /// </summary>
 [BroadcastReceiver(Enabled = true, Exported = false)]
 [IntentFilter(
@@ -27,9 +28,8 @@ public sealed class SmsBroadcastReceiver : BroadcastReceiver
         var incomingMessages = ExtractMessages(intent);
         if (incomingMessages.Count == 0) return;
 
-        // Resolve IImportService from MAUI's DI container.
-        var importService = IPlatformApplication.Current?.Services
-            .GetService<IImportService>();
+        var services      = IPlatformApplication.Current?.Services;
+        var importService = services?.GetService<IImportService>();
         if (importService is null) return;
 
         // OnReceive runs on the main thread; offload processing immediately.
@@ -37,8 +37,13 @@ public sealed class SmsBroadcastReceiver : BroadcastReceiver
         // 10-second broadcast window, but we run in background for UI safety.
         _ = Task.Run(async () =>
         {
+            var coordinator = services?.GetService<AlertCoordinator>();
             foreach (var msg in incomingMessages)
-                await importService.ProcessSingleAsync(msg);
+            {
+                var result = await importService.ProcessSingleAsync(msg);
+                if (coordinator is not null)
+                    await coordinator.EvaluateAndAlertAsync(result);
+            }
         });
     }
 

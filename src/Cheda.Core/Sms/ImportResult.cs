@@ -1,3 +1,5 @@
+using Cheda.Core.Models;
+
 namespace Cheda.Core.Sms;
 
 public sealed class ImportResult
@@ -16,6 +18,12 @@ public sealed class ImportResult
     /// Presented to the user as a single batched review screen, not individual prompts.
     /// </summary>
     public IReadOnlyList<ReviewItem> ReviewQueue { get; init; } = [];
+
+    /// <summary>
+    /// Every transaction freshly inserted in this import round.
+    /// Used by AlertCoordinator to evaluate per-transaction alerts without a second DB query.
+    /// </summary>
+    public IReadOnlyList<Transaction> Inserted { get; init; } = [];
 
     public int Total => NewTransactions + Duplicates + Unparseable;
 }
