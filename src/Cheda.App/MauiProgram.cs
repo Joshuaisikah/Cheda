@@ -2,6 +2,9 @@ using Cheda.App.Storage;
 using Cheda.Core.Bills;
 using Cheda.Core.Budgets;
 using Cheda.Core.Categorization;
+using Cheda.Core.Parsing;
+using Cheda.Core.Parsing.Parsers;
+using Cheda.Core.Sms;
 using Cheda.Core.Storage;
 using Microsoft.Extensions.Logging;
 
@@ -21,6 +24,8 @@ public static class MauiProgram
             });
 
         RegisterStorage(builder.Services);
+        RegisterCore(builder.Services);
+        RegisterSms(builder.Services);
 
 #if DEBUG
         builder.Logging.AddDebug();
@@ -31,7 +36,7 @@ public static class MauiProgram
 
     private static void RegisterStorage(IServiceCollection services)
     {
-        // DatabaseService is the single owner of the SQLite connection.
+        // DatabaseService owns the encrypted SQLite connection.
         // Call InitializeAsync() in App.OnStart() before any repositories are used.
         services.AddSingleton<DatabaseService>();
 
@@ -41,5 +46,28 @@ public static class MauiProgram
         services.AddSingleton<IBillStore,             SqliteBillStore>();
         services.AddSingleton<ISettingsRepository,    SqliteSettingsRepository>();
         services.AddSingleton<IBackupService,         BackupService>();
+    }
+
+    private static void RegisterCore(IServiceCollection services)
+    {
+        services.AddSingleton<IParserEngine>(sp =>
+        {
+            var engine = new ParserEngine();
+            engine.Register(new MpesaParser());
+            // Future: engine.Register(new EquityParser()); — no downstream changes needed
+            return engine;
+        });
+
+        services.AddSingleton<ICategorizer>(sp =>
+            new RuleBasedCategorizer(sp.GetRequiredService<ICategorizerStore>()));
+    }
+
+    private static void RegisterSms(IServiceCollection services)
+    {
+#if ANDROID
+        services.AddSingleton<ISmsReader,
+            Cheda.App.Platforms.Android.Sms.AndroidSmsReader>();
+#endif
+        services.AddSingleton<IImportService, Cheda.Core.Sms.ImportService>();
     }
 }

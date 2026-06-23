@@ -23,4 +23,8 @@ public sealed class Transaction
 
     // Links a reversal back to the transaction it cancels
     public string? ReversesTransactionCode { get; set; }
+
+    // Dual-SIM: raw Android subscription_id of the SIM that received the message.
+    // Null on single-SIM devices or when imported from sources other than live SMS.
+    public int? SimSlot { get; set; }
 }

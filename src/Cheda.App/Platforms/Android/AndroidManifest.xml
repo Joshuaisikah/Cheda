@@ -3,4 +3,12 @@
 	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true"></application>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
+
+	<!-- SMS: READ_SMS is required to scan the existing inbox (first-run import + rescan).
+	     RECEIVE_SMS is required to receive real-time transaction confirmations.
+	     Both are dangerous permissions; a clear explanation screen is shown before
+	     the system prompt. We never read OTP or marketing SMS (parser filters these).
+	     Declared honestly per Google Play SMS permission policy. -->
+	<uses-permission android:name="android.permission.READ_SMS" />
+	<uses-permission android:name="android.permission.RECEIVE_SMS" />
 </manifest>

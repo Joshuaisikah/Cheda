@@ -28,6 +28,7 @@ internal sealed class TransactionEntity
     public string? MatchedRule { get; set; }
     public bool IsNonExpenseTransfer { get; set; }
     public string? ReversesTransactionCode { get; set; }
+    public int? SimSlot { get; set; }
 
     internal static TransactionEntity From(Transaction t) => new()
     {
@@ -48,6 +49,7 @@ internal sealed class TransactionEntity
         MatchedRule             = t.MatchedRule,
         IsNonExpenseTransfer    = t.IsNonExpenseTransfer,
         ReversesTransactionCode = t.ReversesTransactionCode,
+        SimSlot                 = t.SimSlot,
     };
 
     internal Transaction ToDomain() => new()
@@ -67,6 +69,7 @@ internal sealed class TransactionEntity
         MatchedRule             = MatchedRule,
         IsNonExpenseTransfer    = IsNonExpenseTransfer,
         ReversesTransactionCode = ReversesTransactionCode,
+        SimSlot                 = SimSlot,
     };
 
     internal static string MakeDedupKey(string code, TransactionSource source) =>
