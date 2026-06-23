@@ -50,7 +50,7 @@
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">26.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
@@ -74,6 +74,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
@@ -81,23 +82,15 @@
 		<!-- WorkManager for scheduled daily digest. Android-only; best-effort delivery
 		     due to OEM battery-optimisation. Real-time alerts via SmsBroadcastReceiver
 		     are the reliable backbone. -->
-		<PackageReference Include="Xamarin.AndroidX.Work.Runtime"
-		                  Version="2.10.0"
-		                  Condition="$(TargetFramework.Contains('android'))" />
+		<PackageReference Include="Xamarin.AndroidX.Work.Runtime" Version="2.10.0" Condition="$(TargetFramework.Contains('android'))" />
 		<!-- Pin to resolve NU1107 version conflict pulled in by Work.Runtime 2.10.0 -->
-		<PackageReference Include="Xamarin.AndroidX.Concurrent.Futures"
-		                  Version="1.3.0.1"
-		                  Condition="$(TargetFramework.Contains('android'))" />
+		<PackageReference Include="Xamarin.AndroidX.Concurrent.Futures" Version="1.3.0.1" Condition="$(TargetFramework.Contains('android'))" />
 		<!-- Pin Tracing.Ktx to 1.3.0.3 so it requires Tracing >= 1.3.x instead of < 1.2.1,
 		     eliminating the duplicate androidx.tracing.TraceKt class at DEX merge time. -->
-		<PackageReference Include="Xamarin.AndroidX.Tracing.Tracing.Ktx"
-		                  Version="1.3.0.3"
-		                  Condition="$(TargetFramework.Contains('android'))" />
+		<PackageReference Include="Xamarin.AndroidX.Tracing.Tracing.Ktx" Version="1.3.0.3" Condition="$(TargetFramework.Contains('android'))" />
 		<!-- Pin lib.e_sqlite3.android to 2.1.11 which has 16 KB-aligned native libs
 		     required for Android 16 (API 36). MAUI pulls 2.1.2 transitively. -->
-		<PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.android"
-		                  Version="2.1.11"
-		                  Condition="$(TargetFramework.Contains('android'))" />
+		<PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.android" Version="2.1.11" Condition="$(TargetFramework.Contains('android'))" />
 		<!-- Biometric authentication (PIN alternative). Wraps AndroidX BiometricPrompt. -->
 		<PackageReference Include="Plugin.Fingerprint" Version="2.1.0" />
 	</ItemGroup>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Cheda.App.Pages.Analytics"
+    x:Class="Cheda.App.Pages.Analytics.AnalyticsPage"
+    Title="Analytics"
+    BackgroundColor="{StaticResource Background}">
+
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="16">
+
+                <!-- Summary cards -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                        <VerticalStackLayout Padding="14" Spacing="2">
+                            <Label Text="Spent" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                            <Label Text="{Binding TotalSpent, StringFormat='Ksh {0:N0}'}"
+                                   FontAttributes="Bold" TextColor="{StaticResource Danger}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                        <VerticalStackLayout Padding="14" Spacing="2">
+                            <Label Text="Received" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                            <Label Text="{Binding TotalIncome, StringFormat='Ksh {0:N0}'}"
+                                   FontAttributes="Bold" TextColor="{StaticResource Success}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                        <VerticalStackLayout Padding="14" Spacing="2">
+                            <Label Text="Fees" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                            <Label Text="{Binding TotalFees, StringFormat='Ksh {0:N0}'}"
+                                   FontAttributes="Bold" TextColor="{StaticResource Warning}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                        <VerticalStackLayout Padding="14" Spacing="2">
+                            <Label Text="vs Last Month" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                            <Label Text="{Binding MomLabel}" FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Spending by category (bar chart using progress bars) -->
+                <Label Text="By Category" FontAttributes="Bold" FontSize="16"
+                       TextColor="{StaticResource TextPrimary}" Margin="4,8,0,0"/>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <CollectionView ItemsSource="{Binding Categories}" HeightRequest="240">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="local:CategoryRow">
+                                <VerticalStackLayout Padding="16,8" Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" Text="{Binding Category}"
+                                               TextColor="{StaticResource TextPrimary}" FontSize="13"/>
+                                        <Label Grid.Column="1"
+                                               Text="{Binding Total, StringFormat='Ksh {0:N0}'}"
+                                               FontSize="13" TextColor="{StaticResource TextSecondary}"/>
+                                    </Grid>
+                                    <ProgressBar Progress="{Binding Share}" ProgressColor="{StaticResource Primary}"
+                                                 HeightRequest="6"/>
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Border>
+
+                <!-- Top merchants -->
+                <Label Text="Top Merchants" FontAttributes="Bold" FontSize="16"
+                       TextColor="{StaticResource TextPrimary}" Margin="4,8,0,0"/>
+
+                <Border Style="{StaticResource CardStyle}">
+                    <CollectionView ItemsSource="{Binding Top}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto" Padding="16,10">
+                                    <Label Grid.Column="0" Text="{Binding Name}"
+                                           TextColor="{StaticResource TextPrimary}"/>
+                                    <Label Grid.Column="1"
+                                           Text="{Binding Total, StringFormat='Ksh {0:N0}'}"
+                                           TextColor="{StaticResource TextSecondary}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

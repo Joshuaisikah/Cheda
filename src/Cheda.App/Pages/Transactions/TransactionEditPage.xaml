@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Cheda.App.Pages.Transactions.TransactionEditPage"
+    Title="Edit Transaction"
+    BackgroundColor="{StaticResource Surface}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="20">
+
+            <Label Text="{Binding Counterparty}"
+                   FontSize="22" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}"/>
+
+            <Grid ColumnDefinitions="*,*">
+                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                    <Label Text="Amount" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                    <Label Text="{Binding Amount, StringFormat='Ksh {0:N0}'}"
+                           FontAttributes="Bold" FontSize="18" TextColor="{StaticResource TextPrimary}"/>
+                </VerticalStackLayout>
+                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                    <Label Text="Date" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                    <Label Text="{Binding Timestamp}" TextColor="{StaticResource TextPrimary}"/>
+                </VerticalStackLayout>
+            </Grid>
+
+            <BoxView HeightRequest="1" Color="{StaticResource Divider}"/>
+
+            <Label Text="Category" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+            <Picker ItemsSource="{Binding Categories}"
+                    SelectedItem="{Binding SelectedCategory}"
+                    Title="Select category"/>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,16,0,0">
+                <Button Grid.Column="0" Text="Cancel"
+                        Command="{Binding CancelCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}"/>
+                <Button Grid.Column="1" Text="Save"
+                        Command="{Binding SaveCommand}"
+                        Style="{StaticResource PrimaryButtonStyle}"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -3,12 +3,17 @@
     x:Class="Cheda.App.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:Cheda.App"
-    Title="Cheda.App">
+    Title="Cheda"
+    Shell.TabBarBackgroundColor="{StaticResource Surface}"
+    Shell.TabBarForegroundColor="{StaticResource Primary}"
+    Shell.TabBarUnselectedColor="{StaticResource TextSecondary}">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <TabBar>
+        <ShellContent x:Name="HomeTab"         Title="Home"         Icon="tab_home.png"/>
+        <ShellContent x:Name="TransactionsTab" Title="Transactions" Icon="tab_list.png"/>
+        <ShellContent x:Name="ReviewTab"       Title="Review"       Icon="tab_review.png"/>
+        <ShellContent x:Name="AnalyticsTab"    Title="Analytics"    Icon="tab_chart.png"/>
+        <ShellContent x:Name="SettingsTab"     Title="Settings"     Icon="tab_settings.png"/>
+    </TabBar>
 
 </Shell>

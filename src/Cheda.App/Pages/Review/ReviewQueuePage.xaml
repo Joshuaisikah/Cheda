@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Cheda.App.Pages.Review"
+    x:Class="Cheda.App.Pages.Review.ReviewQueuePage"
+    Title="Review"
+    BackgroundColor="{StaticResource Background}">
+
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
+        <CollectionView ItemsSource="{Binding Items}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="local:ReviewItem">
+                    <Border Style="{StaticResource CardStyle}" Margin="8,4">
+                        <Grid RowDefinitions="Auto,Auto,Auto" Padding="16,12" RowSpacing="8">
+
+                            <!-- Merchant + amount -->
+                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Text="{Binding Transaction.Counterparty, FallbackValue='Unknown'}"
+                                           FontAttributes="Bold" TextColor="{StaticResource TextPrimary}"/>
+                                    <Label Text="{Binding Transaction.Timestamp, StringFormat='{0:dd MMM yyyy}'}"
+                                           FontSize="12" TextColor="{StaticResource TextSecondary}"/>
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1"
+                                       Text="{Binding Transaction.Amount, StringFormat='Ksh {0:N0}'}"
+                                       FontAttributes="Bold" VerticalOptions="Center"/>
+                            </Grid>
+
+                            <!-- Category picker -->
+                            <Picker Grid.Row="1"
+                                    ItemsSource="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.Categories}"
+                                    SelectedItem="{Binding SuggestedCategory}"
+                                    Title="Select category"/>
+
+                            <!-- Confirm button -->
+                            <Button Grid.Row="2" Text="✓  Confirm"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ConfirmCommand}"
+                                    CommandParameter="{Binding .}"/>
+
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="8" Margin="0,64">
+                    <Label Text="✓" FontSize="48" HorizontalOptions="Center" TextColor="{StaticResource Success}"/>
+                    <Label Text="All transactions categorised!" TextColor="{StaticResource TextSecondary}"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+        </CollectionView>
+    </RefreshView>
+
+</ContentPage>

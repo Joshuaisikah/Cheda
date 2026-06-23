@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Cheda.App.Pages.Onboarding.OnboardingPage"
+    NavigationPage.HasNavigationBar="False"
+    BackgroundColor="{StaticResource Surface}">
+
+    <Grid Padding="32,64,32,48">
+
+        <!-- Step 0: Welcome -->
+        <VerticalStackLayout Spacing="24" IsVisible="{Binding Step, Converter={StaticResource EqualConverter}, ConverterParameter=0}">
+            <Label Text="Welcome to Cheda" FontSize="28" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" HorizontalOptions="Center"/>
+            <Label Text="Your private M-Pesa assistant. All data stays on your phone — no cloud, no ads."
+                   FontSize="16" TextColor="{StaticResource TextSecondary}" HorizontalTextAlignment="Center"/>
+            <Button Text="Get Started" Command="{Binding NextCommand}" Style="{StaticResource PrimaryButtonStyle}" Margin="0,32,0,0"/>
+        </VerticalStackLayout>
+
+        <!-- Step 1: Set PIN -->
+        <VerticalStackLayout Spacing="16" IsVisible="{Binding Step, Converter={StaticResource EqualConverter}, ConverterParameter=1}">
+            <Label Text="Set a PIN" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}"/>
+            <Label Text="You'll enter this PIN every time you open Cheda." TextColor="{StaticResource TextSecondary}"/>
+            <Entry Placeholder="Enter PIN (4-6 digits)" IsPassword="True" Keyboard="Numeric"
+                   Text="{Binding Pin}" MaxLength="6"/>
+            <Entry Placeholder="Confirm PIN" IsPassword="True" Keyboard="Numeric"
+                   Text="{Binding PinConfirm}" MaxLength="6"/>
+            <Label Text="{Binding PinError}" TextColor="{StaticResource Danger}"
+                   IsVisible="{Binding PinError, Converter={StaticResource NullToBoolConverter}}"/>
+            <Button Text="Set PIN" Command="{Binding NextCommand}" Style="{StaticResource PrimaryButtonStyle}" Margin="0,16,0,0"/>
+        </VerticalStackLayout>
+
+        <!-- Step 2: SMS Permission -->
+        <VerticalStackLayout Spacing="16" IsVisible="{Binding Step, Converter={StaticResource EqualConverter}, ConverterParameter=2}">
+            <Label Text="Allow SMS Access" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}"/>
+            <Label Text="Cheda reads M-Pesa messages to track your spending. Messages never leave your phone."
+                   TextColor="{StaticResource TextSecondary}"/>
+            <Button Text="Grant Permission" Command="{Binding RequestSmsPermissionCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    IsVisible="{Binding SmsGranted, Converter={StaticResource InvertBoolConverter}}"/>
+            <Label Text="✓ Permission granted" TextColor="{StaticResource Success}"
+                   IsVisible="{Binding SmsGranted}" HorizontalOptions="Center"/>
+            <Button Text="Continue" Command="{Binding NextCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}" Margin="0,16,0,0"/>
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>

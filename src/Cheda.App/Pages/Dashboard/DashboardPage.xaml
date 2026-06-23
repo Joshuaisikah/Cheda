@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Cheda.App.Pages.Dashboard"
+    x:Class="Cheda.App.Pages.Dashboard.DashboardPage"
+    Title="Home"
+    BackgroundColor="{StaticResource Background}">
+
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16" Spacing="16">
+
+                <!-- Balance card -->
+                <Border Style="{StaticResource CardStyle}">
+                    <VerticalStackLayout Padding="20" Spacing="4">
+                        <Label Text="M-Pesa Balance" TextColor="{StaticResource TextSecondary}" FontSize="13"/>
+                        <Label Text="{Binding Balance, StringFormat='Ksh {0:N0}'}"
+                               FontSize="32" FontAttributes="Bold" TextColor="{StaticResource Primary}"/>
+                        <Label Text="{Binding MonthLabel}" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Month stats -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                        <VerticalStackLayout Padding="16" Spacing="2">
+                            <Label Text="Spent" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                            <Label Text="{Binding SpentThisMonth, StringFormat='Ksh {0:N0}'}"
+                                   FontAttributes="Bold" TextColor="{StaticResource Danger}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                        <VerticalStackLayout Padding="16" Spacing="2">
+                            <Label Text="Received" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                            <Label Text="{Binding ReceivedThisMonth, StringFormat='Ksh {0:N0}'}"
+                                   FontAttributes="Bold" TextColor="{StaticResource Success}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Review alert -->
+                <Border Style="{StaticResource CardStyle}"
+                        IsVisible="{Binding ReviewCount, Converter={StaticResource GreaterThanZeroConverter}}"
+                        BackgroundColor="{StaticResource PrimaryLight}">
+                    <Grid ColumnDefinitions="*,Auto" Padding="16">
+                        <Label Grid.Column="0"
+                               Text="{Binding ReviewCount, StringFormat='{0} transactions need categorisation'}"
+                               TextColor="{StaticResource PrimaryDark}" FontAttributes="Bold"/>
+                        <Label Grid.Column="1" Text="→" TextColor="{StaticResource Primary}" FontSize="18"/>
+                    </Grid>
+                </Border>
+
+                <!-- Recent transactions -->
+                <Label Text="Recent Transactions" FontAttributes="Bold" FontSize="16"
+                       TextColor="{StaticResource TextPrimary}" Margin="4,8,0,0"/>
+
+                <CollectionView ItemsSource="{Binding Recent}" HeightRequest="300">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,4">
+                                <Grid ColumnDefinitions="*,Auto" Padding="16,12">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                        <Label Text="{Binding Counterparty, FallbackValue='—'}"
+                                               FontAttributes="Bold" TextColor="{StaticResource TextPrimary}"/>
+                                        <Label Text="{Binding Category}" FontSize="12"
+                                               TextColor="{StaticResource TextSecondary}"/>
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="1" HorizontalOptions="End" Spacing="2">
+                                        <Label Text="{Binding Amount, StringFormat='Ksh {0:N0}'}"
+                                               FontAttributes="Bold" TextColor="{StaticResource TextPrimary}"/>
+                                        <Label Text="{Binding Timestamp, StringFormat='{0:dd MMM}'}"
+                                               FontSize="12" TextColor="{StaticResource TextSecondary}"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    <CollectionView.EmptyView>
+                        <Label Text="No transactions yet. Import SMS to get started."
+                               TextColor="{StaticResource TextHint}" HorizontalOptions="Center"
+                               Margin="0,32"/>
+                    </CollectionView.EmptyView>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

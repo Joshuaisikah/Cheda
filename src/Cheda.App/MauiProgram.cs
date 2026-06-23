@@ -1,8 +1,18 @@
+using Cheda.App.Converters;
+using Cheda.App.Pages.Analytics;
+using Cheda.App.Pages.Dashboard;
+using Cheda.App.Pages.Lock;
+using Cheda.App.Pages.Onboarding;
+using Cheda.App.Pages.Review;
+using Cheda.App.Pages.Settings;
+using Cheda.App.Pages.Transactions;
 using Cheda.App.Security;
 using Cheda.App.Storage;
+using Cheda.Core.Analytics;
 using Cheda.Core.Bills;
 using Cheda.Core.Budgets;
 using Cheda.Core.Categorization;
+using Cheda.Core.Insights;
 using Cheda.Core.Notifications;
 using Cheda.Core.Parsing;
 using Cheda.Core.Parsing.Parsers;
@@ -31,6 +41,7 @@ public static class MauiProgram
         RegisterCore(builder.Services);
         RegisterSms(builder.Services);
         RegisterNotifications(builder.Services);
+        RegisterPages(builder.Services);
 
 #if DEBUG
         builder.Logging.AddDebug();
@@ -44,7 +55,8 @@ public static class MauiProgram
         services.AddSingleton<IDatabaseKeyProvider, InMemoryDatabaseKeyProvider>();
         services.AddSingleton<IPinStore,            SecureStoragePinStore>();
         services.AddSingleton<PinHashService>();
-        services.AddSingleton<IAppLockService, AppLockService>();
+        services.AddSingleton<IAppLockService,        AppLockService>();
+        services.AddSingleton<SecureBiometricKeyStore>();
 
 #if ANDROID
         services.AddSingleton<IBiometricService,
@@ -54,11 +66,7 @@ public static class MauiProgram
 
     private static void RegisterStorage(IServiceCollection services)
     {
-        // DatabaseService owns the encrypted SQLite connection.
-        // Call InitializeAsync() after successful PIN/biometric auth (Phase 11 lock screen).
-        // Before a PIN is configured, InitializeAsync() uses a random fallback key.
         services.AddSingleton<DatabaseService>();
-
         services.AddSingleton<ITransactionRepository, SqliteTransactionRepository>();
         services.AddSingleton<ICategorizerStore,      SqliteCategorizerStore>();
         services.AddSingleton<IBudgetStore,           SqliteBudgetStore>();
@@ -73,12 +81,16 @@ public static class MauiProgram
         {
             var engine = new ParserEngine();
             engine.Register(new MpesaParser());
-            // Future: engine.Register(new EquityParser()); — no downstream changes needed
             return engine;
         });
 
         services.AddSingleton<ICategorizer>(sp =>
             new RuleBasedCategorizer(sp.GetRequiredService<ICategorizerStore>()));
+
+        services.AddSingleton<IAnalyticsEngine, AnalyticsEngine>();
+        services.AddSingleton<IBudgetEngine,    BudgetEngine>();
+        services.AddSingleton<IBillEngine,      BillEngine>();
+        services.AddSingleton<IInsightsEngine,  InsightsEngine>();
     }
 
     private static void RegisterSms(IServiceCollection services)
@@ -102,5 +114,29 @@ public static class MauiProgram
         services.AddSingleton<
             Cheda.App.Platforms.Android.Notifications.DigestScheduler>();
 #endif
+    }
+
+    private static void RegisterPages(IServiceCollection services)
+    {
+        // ViewModels
+        services.AddTransient<LockViewModel>();
+        services.AddTransient<OnboardingViewModel>();
+        services.AddTransient<DashboardViewModel>();
+        services.AddTransient<TransactionsViewModel>();
+        services.AddTransient<ReviewQueueViewModel>();
+        services.AddTransient<AnalyticsViewModel>();
+        services.AddTransient<SettingsViewModel>();
+
+        // Shell (singleton — one instance for the authenticated session)
+        services.AddSingleton<AppShell>();
+
+        // Pages
+        services.AddTransient<LockPage>();
+        services.AddTransient<OnboardingPage>();
+        services.AddTransient<DashboardPage>();
+        services.AddTransient<TransactionsPage>();
+        services.AddTransient<ReviewQueuePage>();
+        services.AddTransient<AnalyticsPage>();
+        services.AddTransient<SettingsPage>();
     }
 }

@@ -129,7 +129,6 @@ internal sealed class AndroidNotificationService : INotificationService
     private static void EnsureChannels()
     {
         if (_channelsReady) return;
-        if (Build.VERSION.SdkInt < BuildVersionCodes.O) { _channelsReady = true; return; }
 
         var ctx = global::Android.App.Application.Context;
         if (ctx is null) return;

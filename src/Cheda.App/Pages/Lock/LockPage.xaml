@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Cheda.App.Pages.Lock.LockPage"
+    NavigationPage.HasNavigationBar="False"
+    BackgroundColor="{StaticResource Surface}">
+
+    <Grid RowDefinitions="*,Auto,Auto" Padding="32,48,32,48">
+
+        <!-- Title + dots -->
+        <VerticalStackLayout
+            Grid.Row="0"
+            VerticalOptions="Center"
+            Spacing="24">
+
+            <Label
+                Text="Cheda"
+                FontSize="34"
+                FontAttributes="Bold"
+                TextColor="{StaticResource Primary}"
+                HorizontalOptions="Center"/>
+
+            <Label
+                Text="{Binding LockMessage}"
+                TextColor="{StaticResource Danger}"
+                HorizontalOptions="Center"
+                IsVisible="{Binding LockMessage, Converter={StaticResource NullToBoolConverter}}"/>
+
+            <!-- PIN dots -->
+            <HorizontalStackLayout Spacing="18" HorizontalOptions="Center">
+                <Ellipse x:Name="D1" WidthRequest="16" HeightRequest="16"
+                         Fill="{Binding PinDisplay, Converter={StaticResource PinDotConverter}, ConverterParameter=1}"/>
+                <Ellipse x:Name="D2" WidthRequest="16" HeightRequest="16"
+                         Fill="{Binding PinDisplay, Converter={StaticResource PinDotConverter}, ConverterParameter=2}"/>
+                <Ellipse x:Name="D3" WidthRequest="16" HeightRequest="16"
+                         Fill="{Binding PinDisplay, Converter={StaticResource PinDotConverter}, ConverterParameter=3}"/>
+                <Ellipse x:Name="D4" WidthRequest="16" HeightRequest="16"
+                         Fill="{Binding PinDisplay, Converter={StaticResource PinDotConverter}, ConverterParameter=4}"/>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
+        <!-- Numpad -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="8">
+
+            <Button Grid.Row="0" Grid.Column="0" Text="1" Style="{StaticResource NumPadStyle}" Command="{Binding PressDigitCommand}" CommandParameter="1"/>
+            <Button Grid.Row="0" Grid.Column="1" Text="2" Style="{StaticResource NumPadStyle}" Command="{Binding PressDigitCommand}" CommandParameter="2"/>
+            <Button Grid.Row="0" Grid.Column="2" Text="3" Style="{StaticResource NumPadStyle}" Command="{Binding PressDigitCommand}" CommandParameter="3"/>
+
+            <Button Grid.Row="1" Grid.Column="0" Text="4" Style="{StaticResource NumPadStyle}" Command="{Binding PressDigitCommand}" CommandParameter="4"/>
+            <Button Grid.Row="1" Grid.Column="1" Text="5" Style="{StaticResource NumPadStyle}" Command="{Binding PressDigitCommand}" CommandParameter="5"/>
+            <Button Grid.Row="1" Grid.Column="2" Text="6" Style="{StaticResource NumPadStyle}" Command="{Binding PressDigitCommand}" CommandParameter="6"/>
+
+            <Button Grid.Row="2" Grid.Column="0" Text="7" Style="{StaticResource NumPadStyle}" Command="{Binding PressDigitCommand}" CommandParameter="7"/>
+            <Button Grid.Row="2" Grid.Column="1" Text="8" Style="{StaticResource NumPadStyle}" Command="{Binding PressDigitCommand}" CommandParameter="8"/>
+            <Button Grid.Row="2" Grid.Column="2" Text="9" Style="{StaticResource NumPadStyle}" Command="{Binding PressDigitCommand}" CommandParameter="9"/>
+
+            <!-- Biometric (left) | 0 (centre) | ← (right) -->
+            <Button Grid.Row="3" Grid.Column="0" Text="⏎"
+                    Style="{StaticResource NumPadStyle}"
+                    Command="{Binding BiometricCommand}"
+                    IsVisible="{Binding BiometricAvailable}"/>
+            <Button Grid.Row="3" Grid.Column="1" Text="0"  Style="{StaticResource NumPadStyle}" Command="{Binding PressDigitCommand}" CommandParameter="0"/>
+            <Button Grid.Row="3" Grid.Column="2" Text="⌫"  Style="{StaticResource NumPadStyle}" Command="{Binding BackspaceCommand}"/>
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

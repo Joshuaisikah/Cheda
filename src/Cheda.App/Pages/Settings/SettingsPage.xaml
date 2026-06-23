@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Cheda.App.Pages.Settings.SettingsPage"
+    Title="Settings"
+    BackgroundColor="{StaticResource Background}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
+
+            <!-- Import SMS -->
+            <Label Text="Import" FontAttributes="Bold" FontSize="16" TextColor="{StaticResource TextPrimary}"/>
+            <Border Style="{StaticResource CardStyle}">
+                <VerticalStackLayout Padding="16" Spacing="12">
+                    <Label Text="Import SMS backup (XML)" FontAttributes="Bold"/>
+                    <Label Text="Export your SMS messages from 'SMS Backup &amp; Restore', then select the XML file here."
+                           TextColor="{StaticResource TextSecondary}" FontSize="13"/>
+                    <Button Text="Choose XML file" Command="{Binding ImportXmlCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}" IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBoolConverter}}"/>
+                    <Label Text="{Binding ImportResult}" TextColor="{StaticResource Success}"
+                           IsVisible="{Binding ImportResult, Converter={StaticResource NullToBoolConverter}}"
+                           FontSize="13"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Change PIN -->
+            <Label Text="Security" FontAttributes="Bold" FontSize="16" TextColor="{StaticResource TextPrimary}"/>
+            <Border Style="{StaticResource CardStyle}">
+                <VerticalStackLayout Padding="16" Spacing="12">
+                    <Label Text="Change PIN" FontAttributes="Bold"/>
+                    <Entry Placeholder="Current PIN" IsPassword="True" Keyboard="Numeric"
+                           Text="{Binding CurrentPin}" MaxLength="6"/>
+                    <Entry Placeholder="New PIN (4-6 digits)" IsPassword="True" Keyboard="Numeric"
+                           Text="{Binding NewPin}" MaxLength="6"/>
+                    <Entry Placeholder="Confirm new PIN" IsPassword="True" Keyboard="Numeric"
+                           Text="{Binding NewPinConfirm}" MaxLength="6"/>
+                    <Label Text="{Binding PinChangeResult}" FontSize="13"
+                           IsVisible="{Binding PinChangeResult, Converter={StaticResource NullToBoolConverter}}"
+                           TextColor="{StaticResource Success}"/>
+                    <Button Text="Change PIN" Command="{Binding ChangePinCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Lock now -->
+            <Border Style="{StaticResource CardStyle}">
+                <Button Text="Lock App" Command="{Binding LockCommand}"
+                        BackgroundColor="{StaticResource Danger}" TextColor="White"
+                        Margin="16"/>
+            </Border>
+
+            <!-- About -->
+            <Label Text="About" FontAttributes="Bold" FontSize="16" TextColor="{StaticResource TextPrimary}"/>
+            <Border Style="{StaticResource CardStyle}">
+                <VerticalStackLayout Padding="16" Spacing="4">
+                    <Label Text="Cheda" FontAttributes="Bold"/>
+                    <Label Text="Version 1.0" TextColor="{StaticResource TextSecondary}"/>
+                    <Label Text="All data stays on your device. No cloud, no tracking."
+                           TextColor="{StaticResource TextSecondary}" FontSize="13"/>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
