@@ -62,14 +62,37 @@ public sealed class DatabaseService : IDisposable
     private static void CreateSchema(SQLiteConnection db)
     {
         db.CreateTable<TransactionEntity>();
-        // MigrateTable adds new columns to existing tables without dropping data.
-        db.CreateTable<LearnedMappingEntity>(CreateFlags.MigrateTable);
+        db.CreateTable<LearnedMappingEntity>();
+        MigrateLearnedMappings(db);
         db.CreateTable<RecipientRuleEntity>();
         db.CreateTable<PatternRuleEntity>();
         db.CreateTable<BudgetEntity>();
         db.CreateTable<RecurringBillEntity>();
         db.CreateTable<BillOccurrenceEntity>();
         db.CreateTable<SettingsEntity>();
+    }
+
+    // sqlite-net-pcl 1.9.172 has no CreateFlags.MigrateTable.
+    // Manually add columns introduced for temporal pattern learning (Phase 8).
+    // Safe to call on a fresh database — GetTableInfo returns empty → no ALTER executed.
+    private static void MigrateLearnedMappings(SQLiteConnection db)
+    {
+        var existing = db.GetTableInfo("LearnedMappings")
+                         .Select(c => c.Name.ToLowerInvariant())
+                         .ToHashSet();
+
+        (string col, string type)[] newCols =
+        [
+            ("TypicalAmountLow",  "NUMERIC DEFAULT 0"),
+            ("TypicalAmountHigh", "NUMERIC DEFAULT 0"),
+            ("SampleCount",       "INTEGER DEFAULT 0"),
+            ("DayOfMonthMask",    "INTEGER DEFAULT 0"),
+            ("HourMask",          "INTEGER DEFAULT 0"),
+        ];
+
+        foreach (var (col, type) in newCols)
+            if (!existing.Contains(col.ToLowerInvariant()))
+                db.Execute($"ALTER TABLE LearnedMappings ADD COLUMN {col} {type}");
     }
 
     /// <summary>

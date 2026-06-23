@@ -2,7 +2,7 @@ using Android.Content;
 using Cheda.Core.Notifications;
 using Cheda.Core.Sms;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Maui.ApplicationModel;
+using SmsMessage = Cheda.Core.Sms.SmsMessage;
 
 namespace Cheda.App.Platforms.Android.Sms;
 
@@ -13,9 +13,9 @@ namespace Cheda.App.Platforms.Android.Sms;
 /// AlertCoordinator evaluates and dispatches any relevant notifications.
 /// </summary>
 [BroadcastReceiver(Enabled = true, Exported = false)]
-[IntentFilter(
+[global::Android.App.IntentFilter(
     ["android.provider.Telephony.SMS_RECEIVED"],
-    Priority = (int)global::Android.Content.IntentFilterPriority.NormalPriority)]
+    Priority = 0)]
 public sealed class SmsBroadcastReceiver : BroadcastReceiver
 {
     private static readonly HashSet<string> FinancialSenders =

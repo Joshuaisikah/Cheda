@@ -1,5 +1,6 @@
 using Android.Content;
 using Cheda.Core.Sms;
+using SmsMessage = Cheda.Core.Sms.SmsMessage;
 
 namespace Cheda.App.Platforms.Android.Sms;
 
@@ -36,7 +37,8 @@ public sealed class AndroidSmsReader : ISmsReader
             selectionArgs.Add(since.Value.ToUnixTimeMilliseconds().ToString());
         }
 
-        var uri       = global::Android.Net.Uri.Parse("content://sms/inbox");
+        var uri = global::Android.Net.Uri.Parse("content://sms/inbox");
+        if (uri is null) return messages;  // literal parse cannot fail; guard for binding
         var selection = string.Join(" AND ", selectionParts);
 
         try

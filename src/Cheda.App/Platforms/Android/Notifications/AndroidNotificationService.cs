@@ -105,18 +105,25 @@ internal sealed class AndroidNotificationService : INotificationService
     private static void Post(string channelId, string title, string body, int priority)
     {
         EnsureChannels();
-        var ctx = global::Android.App.Application.Context;
-        var notif = new NotificationCompat.Builder(ctx, channelId)
-            .SetSmallIcon(global::Android.Resource.Drawable.IcDialogInfo)
-            .SetContentTitle(title)
-            .SetContentText(body)
-            .SetStyle(new NotificationCompat.BigTextStyle().BigText(body))
-            .SetAutoCancel(true)
-            .SetPriority(priority)
-            .Build()!;
 
-        ((NotificationManager?)ctx.GetSystemService(Context.NotificationService))
-            ?.Notify(System.Threading.Interlocked.Increment(ref _nextId), notif);
+        var ctx = global::Android.App.Application.Context;
+        if (ctx is null) return;
+
+        // Break the fluent chain — each Xamarin Java binding method returns Builder? so
+        // chaining causes CS8602 on every call. Calling on a typed variable avoids this.
+        NotificationCompat.Builder builder = new(ctx, channelId);
+        builder.SetSmallIcon(global::Android.Resource.Drawable.IcDialogInfo);
+        builder.SetContentTitle(title);
+        builder.SetContentText(body);
+        builder.SetStyle(new NotificationCompat.BigTextStyle().BigText(body));
+        builder.SetAutoCancel(true);
+        builder.SetPriority(priority);
+        var notif = builder.Build();
+
+        if (notif is null) return;
+
+        if (ctx.GetSystemService(Context.NotificationService) is NotificationManager mgr)
+            mgr.Notify(System.Threading.Interlocked.Increment(ref _nextId), notif);
     }
 
     private static void EnsureChannels()
@@ -125,7 +132,9 @@ internal sealed class AndroidNotificationService : INotificationService
         if (Build.VERSION.SdkInt < BuildVersionCodes.O) { _channelsReady = true; return; }
 
         var ctx = global::Android.App.Application.Context;
-        var mgr = (NotificationManager?)ctx.GetSystemService(Context.NotificationService);
+        if (ctx is null) return;
+
+        var mgr = ctx.GetSystemService(Context.NotificationService) as NotificationManager;
         if (mgr is null) return;
 
         mgr.CreateNotificationChannel(new NotificationChannel(

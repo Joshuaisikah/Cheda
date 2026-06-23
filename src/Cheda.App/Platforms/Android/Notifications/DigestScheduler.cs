@@ -24,12 +24,16 @@ public sealed class DigestScheduler
             return;
         }
 
+        var hours  = Java.Util.Concurrent.TimeUnit.Hours
+                     ?? throw new InvalidOperationException("TimeUnit.Hours unavailable");
+        var policy = ExistingPeriodicWorkPolicy.Keep
+                     ?? throw new InvalidOperationException("ExistingPeriodicWorkPolicy.Keep unavailable");
+
         var request = new PeriodicWorkRequest.Builder(
-                Java.Lang.Class.FromType(typeof(DigestWorker)),
-                24, Java.Util.Concurrent.TimeUnit.Hours)
+                Java.Lang.Class.FromType(typeof(DigestWorker)), 24, hours)
             .Build();
 
-        wm.EnqueueUniquePeriodicWork(WorkName, ExistingPeriodicWorkPolicy.Keep, request);
+        wm.EnqueueUniquePeriodicWork(WorkName, policy, request);
     }
 
     public void Cancel()

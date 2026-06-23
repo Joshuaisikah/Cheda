@@ -32,7 +32,6 @@ internal sealed class AndroidBiometricService : IBiometricService
             var config = new AuthenticationRequestConfiguration("Unlock Cheda", reason)
             {
                 AllowAlternativeAuthentication = false,
-                ConfirmationRequired           = false,
             };
 
             var result = await CrossFingerprint.Current.AuthenticateAsync(config, ct);
