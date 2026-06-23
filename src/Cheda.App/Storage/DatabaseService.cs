@@ -62,7 +62,8 @@ public sealed class DatabaseService : IDisposable
     private static void CreateSchema(SQLiteConnection db)
     {
         db.CreateTable<TransactionEntity>();
-        db.CreateTable<LearnedMappingEntity>();
+        // MigrateTable adds new columns to existing tables without dropping data.
+        db.CreateTable<LearnedMappingEntity>(CreateFlags.MigrateTable);
         db.CreateTable<RecipientRuleEntity>();
         db.CreateTable<PatternRuleEntity>();
         db.CreateTable<BudgetEntity>();

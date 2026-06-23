@@ -47,8 +47,12 @@ public sealed partial class RuleBasedCategorizer : ICategorizer
             string.Equals(m.Key, key, StringComparison.OrdinalIgnoreCase));
         if (exact is not null)
         {
-            // Each additional confirmation nudges confidence up slightly, capped at 0.99
-            var confidence = Math.Min(0.90 + (exact.ConfirmationCount - 1) * 0.01, 0.99);
+            // Each additional user confirmation nudges base confidence up, capped at 0.99.
+            var baseConf   = Math.Min(0.90 + (exact.ConfirmationCount - 1) * 0.01, 0.99);
+            // Temporal signals (amount band + time-of-day) are soft additive boosts only.
+            // They never override explicit rules and never create a confident-but-wrong result.
+            var temporal   = ComputeTemporalBoost(exact, tx);
+            var confidence = Math.Min(baseConf + temporal, 0.99);
             return Make(exact.Category, confidence, $"Learned: {exact.Key}");
         }
 
@@ -77,6 +81,20 @@ public sealed partial class RuleBasedCategorizer : ICategorizer
         {
             _store.UpsertLearnedMapping(new LearnedMapping { Key = key, Category = category });
         }
+    }
+
+    public void ObserveTransaction(Transaction tx)
+    {
+        var key      = MappingKey(tx);
+        var existing = _store.GetLearnedMappings().FirstOrDefault(m =>
+            string.Equals(m.Key, key, StringComparison.OrdinalIgnoreCase));
+
+        // Only enrich existing mappings — never create a mapping from auto-observation alone.
+        if (existing is null) return;
+
+        existing.UpdateTemporalProfile(tx);
+        existing.LastUpdated = DateTimeOffset.UtcNow;
+        _store.UpsertLearnedMapping(existing);
     }
 
     // ── Step 0: type-based deterministic rules ───────────────────────────────
@@ -186,6 +204,64 @@ public sealed partial class RuleBasedCategorizer : ICategorizer
             .ToLowerInvariant();
         normalized = string.Join(" ", normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries));
         return normalized.Length > 0 ? normalized : $"type:{tx.Type}";
+    }
+
+    // ── Temporal boost (soft, additive, max +0.10) ───────────────────────────
+    // These signals confirm what the learned mapping already knows. They never
+    // fire before step 3 and never override type/recipient/pattern rules.
+
+    private static double ComputeTemporalBoost(LearnedMapping m, Transaction tx)
+    {
+        if (m.SampleCount == 0) return 0.0;
+
+        double boost = 0.0;
+
+        // Amount band (+0.05) ─────────────────────────────────────────────────
+        // Slack is 20% of the observed band, minimum Ksh 20 so very tight bands
+        // (e.g., always exactly Ksh20) still allow a small tolerance.
+        if (m.TypicalAmountHigh > 0)
+        {
+            var bandWidth = m.TypicalAmountHigh - m.TypicalAmountLow;
+            var slack     = Math.Max(bandWidth * 0.20m, 20m);
+            if (tx.Amount >= m.TypicalAmountLow - slack
+             && tx.Amount <= m.TypicalAmountHigh + slack)
+                boost += 0.05;
+        }
+
+        // Day-of-month (+0.03) — meaningful only after 3+ observations ────────
+        // ±5-day tolerance handles month-length variation and slight timing drift
+        // (e.g., rent paid on 1st–5th, electricity on 4th–14th).
+        if (m.SampleCount >= 3 && m.DayOfMonthMask != 0)
+        {
+            if (DayInMask(m.DayOfMonthMask, tx.Timestamp.LocalDateTime.Day, tolerance: 5))
+                boost += 0.03;
+        }
+
+        // Hour-of-day (+0.02) — meaningful only after 3+ observations ─────────
+        // ±2-hour tolerance accounts for natural schedule variation.
+        if (m.SampleCount >= 3 && m.HourMask != 0)
+        {
+            if (HourInMask(m.HourMask, tx.Timestamp.LocalDateTime.Hour, tolerance: 2))
+                boost += 0.02;
+        }
+
+        return boost;  // max +0.10
+    }
+
+    private static bool DayInMask(int mask, int day, int tolerance)
+    {
+        for (var d = 1; d <= 31; d++)
+            if ((mask & (1 << (d - 1))) != 0 && Math.Abs(day - d) <= tolerance)
+                return true;
+        return false;
+    }
+
+    private static bool HourInMask(int mask, int hour, int tolerance)
+    {
+        for (var h = 0; h < 24; h++)
+            if ((mask & (1 << h)) != 0 && Math.Abs(hour - h) <= tolerance)
+                return true;
+        return false;
     }
 
     // ── Result factory ───────────────────────────────────────────────────────

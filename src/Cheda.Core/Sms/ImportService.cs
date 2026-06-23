@@ -90,6 +90,14 @@ public sealed class ImportService : IImportService
             newCount++;
             inserted.Add(tx);
 
+            // For high-confidence categorizations, record the transaction's amount and
+            // timing into the learned mapping's temporal profile. This builds usage patterns
+            // (amount band, day-of-month, hour-of-day) without any user input.
+            // Threshold 0.85 = type rules (1.0), recipient rules (0.95), pattern rules (0.85)
+            // all qualify; similarity guesses (0.50) and uncategorized (0.0) do not.
+            if (cat.Confidence >= 0.85)
+                _categorizer.ObserveTransaction(tx);
+
             // Flag for batched review if the categorizer is uncertain.
             // The UI presents all flagged items as a single review screen, not
             // individual pop-ups, to avoid overwhelming the user on first import.
