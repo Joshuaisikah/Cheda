@@ -1,3 +1,4 @@
+using Cheda.App.Security;
 using Cheda.App.Storage;
 using Cheda.Core.Bills;
 using Cheda.Core.Budgets;
@@ -5,6 +6,7 @@ using Cheda.Core.Categorization;
 using Cheda.Core.Notifications;
 using Cheda.Core.Parsing;
 using Cheda.Core.Parsing.Parsers;
+using Cheda.Core.Security;
 using Cheda.Core.Sms;
 using Cheda.Core.Storage;
 using Microsoft.Extensions.Logging;
@@ -24,6 +26,7 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
+        RegisterSecurity(builder.Services);
         RegisterStorage(builder.Services);
         RegisterCore(builder.Services);
         RegisterSms(builder.Services);
@@ -36,10 +39,24 @@ public static class MauiProgram
         return builder.Build();
     }
 
+    private static void RegisterSecurity(IServiceCollection services)
+    {
+        services.AddSingleton<IDatabaseKeyProvider, InMemoryDatabaseKeyProvider>();
+        services.AddSingleton<IPinStore,            SecureStoragePinStore>();
+        services.AddSingleton<PinHashService>();
+        services.AddSingleton<IAppLockService, AppLockService>();
+
+#if ANDROID
+        services.AddSingleton<IBiometricService,
+            Cheda.App.Platforms.Android.Security.AndroidBiometricService>();
+#endif
+    }
+
     private static void RegisterStorage(IServiceCollection services)
     {
         // DatabaseService owns the encrypted SQLite connection.
-        // Call InitializeAsync() in App.OnStart() before any repositories are used.
+        // Call InitializeAsync() after successful PIN/biometric auth (Phase 11 lock screen).
+        // Before a PIN is configured, InitializeAsync() uses a random fallback key.
         services.AddSingleton<DatabaseService>();
 
         services.AddSingleton<ITransactionRepository, SqliteTransactionRepository>();

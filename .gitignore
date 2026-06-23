@@ -20,10 +20,11 @@ coverage/
 *.trx
 *.coveragexml
 
-## User real-data fixtures — never commit actual transaction SMS
+## User real-data fixtures — never commit actual transaction SMS or message exports
 tests/**/fixtures/real/
 *.real.json
 *.real.csv
+sms-*.xml
 
 ## OS
 .DS_Store

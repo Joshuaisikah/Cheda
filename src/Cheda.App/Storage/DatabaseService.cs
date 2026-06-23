@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Cheda.App.Storage.Entities;
+using Cheda.Core.Security;
 using Microsoft.Maui.Storage;
 using SQLite;
 
@@ -9,28 +10,37 @@ namespace Cheda.App.Storage;
 /// Owns the encrypted SQLite connection. Call InitializeAsync() at app startup before
 /// any repository access.
 ///
-/// Encryption key: randomly generated per-install, stored in Android SecureStorage.
-/// In Phase 10, a PIN-derived key (PBKDF2 + Keystore pepper) will replace the random key.
+/// Key selection order (Phase 10):
+///   1. PIN-derived key from IDatabaseKeyProvider (set after successful PIN/biometric auth).
+///   2. Fallback: random per-install key in SecureStorage (used before PIN is configured).
+///
+/// The fallback key ensures the app works out of the box without a PIN, and the same key
+/// is used consistently until the user configures a PIN. When Phase 11 wires the lock screen,
+/// Step 1 becomes the active path and the Phase 10 security story is complete.
 /// </summary>
 public sealed class DatabaseService : IDisposable
 {
-    private const string KeyStoreName = "cheda_db_key_v1";
+    private const string FallbackKeyName = "cheda_db_key_v1";
 
-    private SQLiteConnection? _connection;
-    private readonly object _initLock = new();
+    private readonly IDatabaseKeyProvider _keyProvider;
+    private          SQLiteConnection?    _connection;
+    private readonly object               _initLock = new();
+
+    public DatabaseService(IDatabaseKeyProvider keyProvider) =>
+        _keyProvider = keyProvider;
 
     public string DbPath { get; } = Path.Combine(
-        Microsoft.Maui.Storage.FileSystem.AppDataDirectory, "cheda.db3");
+        FileSystem.AppDataDirectory, "cheda.db3");
 
     public SQLiteConnection Db =>
         _connection ?? throw new InvalidOperationException(
-            "DatabaseService not initialized. Call InitializeAsync() at app startup.");
+            "DatabaseService not initialized. Call InitializeAsync() after authentication.");
 
     public async Task InitializeAsync()
     {
         if (_connection is not null) return;
 
-        var key = await GetOrCreateKeyAsync();
+        var key = await ResolveKeyAsync();
 
         lock (_initLock)
         {
@@ -63,7 +73,7 @@ public sealed class DatabaseService : IDisposable
 
     /// <summary>
     /// Closes the connection so the database file can be safely copied (backup/restore).
-    /// Reopens automatically on next Db access after calling ReopenAsync().
+    /// Call ReopenAsync() to resume normal operation.
     /// </summary>
     internal void Close()
     {
@@ -81,16 +91,22 @@ public sealed class DatabaseService : IDisposable
         await InitializeAsync();
     }
 
-    private static async Task<string> GetOrCreateKeyAsync()
+    private async Task<string> ResolveKeyAsync()
     {
-        var key = await SecureStorage.GetAsync(KeyStoreName);
-        if (key is not null) return key;
+        // Prefer a PIN-derived key (set by AppLockService after successful auth).
+        var derivedKey = _keyProvider.GetKey();
+        if (derivedKey is not null)
+            return Convert.ToBase64String(derivedKey);
+
+        // Fallback: random per-install key for installs that have not configured a PIN.
+        var stored = await SecureStorage.GetAsync(FallbackKeyName);
+        if (stored is not null) return stored;
 
         var bytes = new byte[32];
         RandomNumberGenerator.Fill(bytes);
-        key = Convert.ToBase64String(bytes);
-        await SecureStorage.SetAsync(KeyStoreName, key);
-        return key;
+        stored = Convert.ToBase64String(bytes);
+        await SecureStorage.SetAsync(FallbackKeyName, stored);
+        return stored;
     }
 
     public void Dispose()
