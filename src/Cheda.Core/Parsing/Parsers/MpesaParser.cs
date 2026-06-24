@@ -20,17 +20,19 @@ public sealed partial class MpesaParser : ISourceParser
 
     public ParseResult Parse(string sender, string body, DateTimeOffset timestamp)
     {
-        var tx = TryParseSentPaybill(body, timestamp)  // "sent to X for account Y" — match before generic Sent
+        var tx = TryParseZidii(body, timestamp)         // savings products must match before generic Sent
+            ?? TryParseKcbMpesa(body, timestamp)
+            ?? TryParseMShwari(body, timestamp)
+            ?? TryParseSentPaybill(body, timestamp)     // "sent to X for account Y" — match before generic Sent
             ?? TryParseSent(body, timestamp)
             ?? TryParseReceived(body, timestamp)
-            ?? TryParseBuyGoods(body, timestamp)       // "paid to X. on" — real buy-goods format (no Till number in msg)
-            ?? TryParsePaidTill(body, timestamp)        // legacy: "paid to X Till 123"
-            ?? TryParsePaidPaybill(body, timestamp)     // legacy: "paid to X Paybill 123 account Y"
+            ?? TryParseBuyGoods(body, timestamp)        // "paid to X. on" — real buy-goods format (no Till number in msg)
+            ?? TryParsePaidTill(body, timestamp)         // legacy: "paid to X Till 123"
+            ?? TryParsePaidPaybill(body, timestamp)      // legacy: "paid to X Paybill 123 account Y"
             ?? TryParseWithdrawn(body, timestamp)
             ?? TryParseDeposit(body, timestamp)
             ?? TryParseAirtime(body, timestamp)
             ?? TryParseFuliza(body, timestamp)
-            ?? TryParseMShwari(body, timestamp)
             ?? TryParseReversal(body, timestamp)
             ?? BuildUnknown(body, timestamp);
 
@@ -296,6 +298,58 @@ public sealed partial class MpesaParser : ISourceParser
             Type = TransactionType.Fuliza,
             Timestamp = timestamp,
             RawMessage = body,
+        };
+    }
+
+    // ── Zidii savings ───────────────────────────────────────────────────────────
+    // "QGH2XK1A23 Confirmed. Ksh1,000.00 saved to Zidii Goal: Holiday Fund. New M-PESA balance is Ksh500.00."
+    // Also: "sent to ZIDII SAVINGS for account..."
+    [GeneratedRegex(
+        @"(?<code>[A-Z0-9]{10})\s+Confirmed[^.]*?\.\s+Ksh(?<amount>[\d,]+\.?\d*)\s+(saved to Zidii|sent to ZIDII)",
+        RegexOptions.IgnoreCase)]
+    private static partial Regex ZidiiRegex();
+
+    private static Transaction? TryParseZidii(string body, DateTimeOffset timestamp)
+    {
+        var m = ZidiiRegex().Match(body);
+        if (!m.Success) return null;
+        return new Transaction
+        {
+            TransactionCode      = m.Groups["code"].Value,
+            Source               = TransactionSource.Mpesa,
+            Amount               = ParseAmount(m.Groups["amount"].Value),
+            Type                 = TransactionType.Zidii,
+            Counterparty         = "Zidii Savings",
+            BalanceAfter         = ExtractBalance(body),
+            Timestamp            = timestamp,
+            RawMessage           = body,
+            IsNonExpenseTransfer = true,
+        };
+    }
+
+    // ── KCB M-Pesa savings ───────────────────────────────────────────────────────
+    // "QGH2XK1A23 Confirmed. Ksh500.00 sent to KCB MPESA SAVINGS ACCOUNT on 10/6/26..."
+    // "QGH2XK1A23 Confirmed. Ksh500.00 sent to KCB M-PESA for account..."
+    [GeneratedRegex(
+        @"(?<code>[A-Z0-9]{10})\s+Confirmed[^.]*?\.\s+Ksh(?<amount>[\d,]+\.?\d*)\s+sent to KCB\s*M-?PESA",
+        RegexOptions.IgnoreCase)]
+    private static partial Regex KcbMpesaRegex();
+
+    private static Transaction? TryParseKcbMpesa(string body, DateTimeOffset timestamp)
+    {
+        var m = KcbMpesaRegex().Match(body);
+        if (!m.Success) return null;
+        return new Transaction
+        {
+            TransactionCode      = m.Groups["code"].Value,
+            Source               = TransactionSource.Mpesa,
+            Amount               = ParseAmount(m.Groups["amount"].Value),
+            Type                 = TransactionType.KcbMpesa,
+            Counterparty         = "KCB M-Pesa",
+            BalanceAfter         = ExtractBalance(body),
+            Timestamp            = timestamp,
+            RawMessage           = body,
+            IsNonExpenseTransfer = true,
         };
     }
 

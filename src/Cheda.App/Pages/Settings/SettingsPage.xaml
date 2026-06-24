@@ -6,62 +6,153 @@
     Title="Settings"
     BackgroundColor="{StaticResource Background}">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="16">
+    <Grid>
+    <ScrollView BackgroundColor="{StaticResource Background}">
+        <VerticalStackLayout x:Name="ContentLayout" Padding="16" Spacing="20" Opacity="0">
 
-            <!-- Import SMS -->
-            <Label Text="Import" FontAttributes="Bold" FontSize="16" TextColor="{StaticResource TextPrimary}"/>
+            <!-- ── Import / Sync ───────────────────────────────── -->
+            <Label Text="📥  Data" FontAttributes="Bold" FontSize="14"
+                   TextColor="{StaticResource TextSecondary}" Margin="4,0,0,0"/>
             <Border Style="{StaticResource CardStyle}">
-                <VerticalStackLayout Padding="16" Spacing="12">
-                    <Label Text="Import SMS backup (XML)" FontAttributes="Bold"/>
-                    <Label Text="Export your SMS messages from 'SMS Backup &amp; Restore', then select the XML file here."
-                           TextColor="{StaticResource TextSecondary}" FontSize="13"/>
-                    <Button Text="Choose XML file" Command="{Binding ImportXmlCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}" IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBoolConverter}}"/>
-                    <Label Text="{Binding ImportResult}" TextColor="{StaticResource Success}"
+                <VerticalStackLayout Padding="16" Spacing="14">
+
+                    <!-- Primary: read directly from phone -->
+                    <VerticalStackLayout Spacing="6">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Border Grid.Column="0" WidthRequest="38" HeightRequest="38"
+                                    BackgroundColor="{StaticResource PrimaryLight}"
+                                    StrokeShape="RoundRectangle 10" Stroke="Transparent">
+                                <Label Text="📱" FontSize="18" HorizontalOptions="Center"
+                                       VerticalOptions="Center"/>
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" Spacing="2"
+                                                 VerticalOptions="Center">
+                                <Label Text="Scan my messages" FontAttributes="Bold" FontSize="14"
+                                       TextColor="{StaticResource TextPrimary}"/>
+                                <Label Text="Reads M-Pesa SMS directly from your phone"
+                                       FontSize="12" TextColor="{StaticResource TextSecondary}"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                        <Button Text="📲  Scan Messages Now" Command="{Binding ScanSmsCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBoolConverter}}"/>
+                    </VerticalStackLayout>
+
+                    <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}"/>
+
+                    <!-- Fallback: XML file -->
+                    <VerticalStackLayout Spacing="6">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Border Grid.Column="0" WidthRequest="38" HeightRequest="38"
+                                    BackgroundColor="{StaticResource SurfaceVariant}"
+                                    StrokeShape="RoundRectangle 10" Stroke="Transparent">
+                                <Label Text="📂" FontSize="18" HorizontalOptions="Center"
+                                       VerticalOptions="Center"/>
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" Spacing="2"
+                                                 VerticalOptions="Center">
+                                <Label Text="Import from backup file" FontAttributes="Bold" FontSize="13"
+                                       TextColor="{StaticResource TextSecondary}"/>
+                                <Label Text="XML from SMS Backup &amp; Restore app"
+                                       FontSize="12" TextColor="{StaticResource TextHint}"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                        <Button Text="Choose XML File" Command="{Binding ImportXmlCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBoolConverter}}"/>
+                    </VerticalStackLayout>
+
+                    <Label Text="{Binding ImportResult}"
+                           TextColor="{StaticResource Success}"
                            IsVisible="{Binding ImportResult, Converter={StaticResource NullToBoolConverter}}"
-                           FontSize="13"/>
+                           FontSize="13" Margin="4,0,0,0"/>
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Change PIN -->
-            <Label Text="Security" FontAttributes="Bold" FontSize="16" TextColor="{StaticResource TextPrimary}"/>
+            <!-- ── Security ───────────────────────────────────── -->
+            <Label Text="🔐  Security" FontAttributes="Bold" FontSize="14"
+                   TextColor="{StaticResource TextSecondary}" Margin="4,0,0,0"/>
             <Border Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Padding="16" Spacing="12">
-                    <Label Text="Change PIN" FontAttributes="Bold"/>
-                    <Entry Placeholder="Current PIN" IsPassword="True" Keyboard="Numeric"
-                           Text="{Binding CurrentPin}" MaxLength="6"/>
-                    <Entry Placeholder="New PIN (4-6 digits)" IsPassword="True" Keyboard="Numeric"
-                           Text="{Binding NewPin}" MaxLength="6"/>
-                    <Entry Placeholder="Confirm new PIN" IsPassword="True" Keyboard="Numeric"
-                           Text="{Binding NewPinConfirm}" MaxLength="6"/>
+                    <Label Text="Change PIN" FontAttributes="Bold" FontSize="14"
+                           TextColor="{StaticResource TextPrimary}"/>
+
+                    <Border BackgroundColor="{StaticResource SurfaceVariant}"
+                            Stroke="{StaticResource Divider}" StrokeShape="RoundRectangle 8"
+                            StrokeThickness="1" Padding="12,0">
+                        <Entry Placeholder="Current PIN" IsPassword="True" Keyboard="Numeric"
+                               Text="{Binding CurrentPin}" MaxLength="6"
+                               PlaceholderColor="{StaticResource TextHint}"
+                               TextColor="{StaticResource TextPrimary}"
+                               BackgroundColor="Transparent" HeightRequest="44"/>
+                    </Border>
+                    <Border BackgroundColor="{StaticResource SurfaceVariant}"
+                            Stroke="{StaticResource Divider}" StrokeShape="RoundRectangle 8"
+                            StrokeThickness="1" Padding="12,0">
+                        <Entry Placeholder="New PIN (4–6 digits)" IsPassword="True" Keyboard="Numeric"
+                               Text="{Binding NewPin}" MaxLength="6"
+                               PlaceholderColor="{StaticResource TextHint}"
+                               TextColor="{StaticResource TextPrimary}"
+                               BackgroundColor="Transparent" HeightRequest="44"/>
+                    </Border>
+                    <Border BackgroundColor="{StaticResource SurfaceVariant}"
+                            Stroke="{StaticResource Divider}" StrokeShape="RoundRectangle 8"
+                            StrokeThickness="1" Padding="12,0">
+                        <Entry Placeholder="Confirm new PIN" IsPassword="True" Keyboard="Numeric"
+                               Text="{Binding NewPinConfirm}" MaxLength="6"
+                               PlaceholderColor="{StaticResource TextHint}"
+                               TextColor="{StaticResource TextPrimary}"
+                               BackgroundColor="Transparent" HeightRequest="44"/>
+                    </Border>
+
                     <Label Text="{Binding PinChangeResult}" FontSize="13"
                            IsVisible="{Binding PinChangeResult, Converter={StaticResource NullToBoolConverter}}"
-                           TextColor="{StaticResource Success}"/>
+                           TextColor="{StaticResource Success}" Margin="4,0,0,0"/>
                     <Button Text="Change PIN" Command="{Binding ChangePinCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"/>
+                            Style="{StaticResource SecondaryButtonStyle}"/>
                 </VerticalStackLayout>
             </Border>
 
             <!-- Lock now -->
-            <Border Style="{StaticResource CardStyle}">
-                <Button Text="Lock App" Command="{Binding LockCommand}"
-                        BackgroundColor="{StaticResource Danger}" TextColor="White"
-                        Margin="16"/>
-            </Border>
+            <Button Text="🔒  Lock App Now" Command="{Binding LockCommand}"
+                    Style="{StaticResource DangerButtonStyle}"/>
 
-            <!-- About -->
-            <Label Text="About" FontAttributes="Bold" FontSize="16" TextColor="{StaticResource TextPrimary}"/>
+            <!-- ── About ───────────────────────────────────────── -->
+            <Label Text="ℹ️  About" FontAttributes="Bold" FontSize="14"
+                   TextColor="{StaticResource TextSecondary}" Margin="4,0,0,0"/>
             <Border Style="{StaticResource CardStyle}">
-                <VerticalStackLayout Padding="16" Spacing="4">
-                    <Label Text="Cheda" FontAttributes="Bold"/>
-                    <Label Text="Version 1.0" TextColor="{StaticResource TextSecondary}"/>
-                    <Label Text="All data stays on your device. No cloud, no tracking."
+                <VerticalStackLayout Padding="16" Spacing="8">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Grid.Column="0" WidthRequest="44" HeightRequest="44"
+                                BackgroundColor="{StaticResource Primary}"
+                                StrokeShape="RoundRectangle 12" Stroke="Transparent">
+                            <Label Text="₵" FontSize="24" FontAttributes="Bold"
+                                   TextColor="White" HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" VerticalOptions="Center">
+                            <Label Text="Cheda" FontAttributes="Bold" FontSize="16"
+                                   TextColor="{StaticResource TextPrimary}"/>
+                            <Label Text="Version 1.0" FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                    <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}"
+                             Margin="0,4"/>
+                    <Label Text="🔒  All data stays on your device."
+                           TextColor="{StaticResource TextSecondary}" FontSize="13"/>
+                    <Label Text="📵  No cloud. No tracking. No ads."
+                           TextColor="{StaticResource TextSecondary}" FontSize="13"/>
+                    <Label Text="🇰🇪  Built for M-Pesa users in Kenya."
                            TextColor="{StaticResource TextSecondary}" FontSize="13"/>
                 </VerticalStackLayout>
             </Border>
 
+            <BoxView HeightRequest="24" Color="Transparent"/>
         </VerticalStackLayout>
     </ScrollView>
+
+    <Grid x:Name="LoadingOverlay" BackgroundColor="{StaticResource Background}" IsVisible="False"/>
+    </Grid>
 
 </ContentPage>

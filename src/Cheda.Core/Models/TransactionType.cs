@@ -11,6 +11,8 @@ public enum TransactionType
     Airtime,
     Fuliza,
     MShwari,
+    KcbMpesa,
+    Zidii,
     Reversal,
     Unknown,
 }

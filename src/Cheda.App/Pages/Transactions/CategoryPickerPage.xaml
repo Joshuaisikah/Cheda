@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Cheda.App.Pages.Transactions.CategoryPickerPage"
+    BackgroundColor="{StaticResource Background}">
+
+    <Grid RowDefinitions="Auto,Auto,*" BackgroundColor="{StaticResource Background}">
+
+        <!-- ── Header ──────────────────────────────────────────────── -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Padding="16,16,16,8">
+            <Button Grid.Column="0" Text="✕ Cancel" Command="{Binding CancelCommand}"
+                    BackgroundColor="Transparent" TextColor="{StaticResource TextSecondary}"
+                    FontSize="14" Padding="0" HeightRequest="36"/>
+            <Label Grid.Column="1" Text="Category" FontSize="17" FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}"
+                   HorizontalOptions="Center" VerticalOptions="Center"/>
+        </Grid>
+
+        <!-- ── Search ──────────────────────────────────────────────── -->
+        <Border Grid.Row="1" Margin="16,0,16,8"
+                BackgroundColor="{StaticResource SurfaceVariant}"
+                Stroke="{StaticResource Divider}" StrokeShape="RoundRectangle 10"
+                StrokeThickness="1" Padding="12,0">
+            <Grid ColumnDefinitions="Auto,*">
+                <Label Grid.Column="0" Text="🔍" FontSize="15" VerticalOptions="Center"
+                       Margin="0,0,8,0" TextColor="{StaticResource TextHint}"/>
+                <Entry Grid.Column="1" x:Name="SearchEntry"
+                       Placeholder="Search categories…"
+                       PlaceholderColor="{StaticResource TextHint}"
+                       TextColor="{StaticResource TextPrimary}"
+                       BackgroundColor="Transparent" HeightRequest="44"
+                       TextChanged="OnSearchChanged"/>
+            </Grid>
+        </Border>
+
+        <!-- ── List ────────────────────────────────────────────────── -->
+        <CollectionView Grid.Row="2" x:Name="CategoryList">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="0"/>
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid BackgroundColor="{StaticResource Background}">
+                        <!-- Tap ripple layer -->
+                        <Grid ColumnDefinitions="Auto,*,Auto"
+                              Padding="16,0" HeightRequest="62" ColumnSpacing="14">
+                            <!-- Emoji badge -->
+                            <Border Grid.Column="0" WidthRequest="40" HeightRequest="40"
+                                    BackgroundColor="{StaticResource Surface}"
+                                    Stroke="{StaticResource Divider}" StrokeShape="RoundRectangle 10"
+                                    StrokeThickness="1">
+                                <Label Text="{Binding Emoji}" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center"/>
+                            </Border>
+                            <!-- Category name -->
+                            <Label Grid.Column="1" Text="{Binding Name}" FontSize="15"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center"/>
+                            <!-- Arrow -->
+                            <Label Grid.Column="2" Text="›" FontSize="22"
+                                   TextColor="{StaticResource Primary}"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+                        <!-- Bottom divider -->
+                        <BoxView VerticalOptions="End" HeightRequest="1"
+                                 BackgroundColor="{StaticResource Divider}"
+                                 Margin="70,0,0,0"/>
+                        <!-- Full-row tap -->
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnItemTapped"
+                                                  CommandParameter="{Binding Name}"/>
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+
+</ContentPage>

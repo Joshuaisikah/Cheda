@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Cheda.App.Pages.Insights"
+    x:Class="Cheda.App.Pages.Insights.InsightsPage"
+    Title="Reports"
+    BackgroundColor="{StaticResource Background}">
+
+    <Grid>
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
+        <ScrollView BackgroundColor="{StaticResource Background}">
+            <VerticalStackLayout x:Name="ContentLayout" Padding="0,0,0,24" Spacing="0" Opacity="0">
+
+                <!-- ── Month selector ────────────────────────────────────── -->
+                <CollectionView ItemsSource="{Binding MonthOptions}"
+                                SelectedItem="{Binding SelectedMonth, Mode=TwoWay}"
+                                SelectionMode="Single"
+                                ItemsLayout="HorizontalList"
+                                HeightRequest="48"
+                                Margin="0,0,0,2"
+                                BackgroundColor="{StaticResource Surface}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="local:MonthOption">
+                            <Grid Padding="6,0">
+                                <Border x:Name="MonthPill"
+                                        Padding="14,8"
+                                        BackgroundColor="Transparent"
+                                        Stroke="Transparent"
+                                        StrokeShape="RoundRectangle 20">
+                                    <Label Text="{Binding Label}" FontSize="13"
+                                           TextColor="{StaticResource TextSecondary}"
+                                           HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}"/>
+
+                <VerticalStackLayout Padding="16,16,16,0" Spacing="16">
+
+                <!-- ── Summary cards row 1 ──────────────────────────────── -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                        <VerticalStackLayout Padding="14" Spacing="4">
+                            <Label Text="💸  Spent" TextColor="{StaticResource TextSecondary}" FontSize="11"/>
+                            <Label Text="{Binding TotalSpent, StringFormat='Ksh {0:N0}'}"
+                                   FontAttributes="Bold" FontSize="18" TextColor="{StaticResource Danger}"/>
+                            <Label Text="{Binding ChartMonthLabel}" FontSize="10"
+                                   TextColor="{StaticResource TextHint}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                        <VerticalStackLayout Padding="14" Spacing="4">
+                            <Label Text="💰  Received" TextColor="{StaticResource TextSecondary}" FontSize="11"/>
+                            <Label Text="{Binding TotalIncome, StringFormat='Ksh {0:N0}'}"
+                                   FontAttributes="Bold" FontSize="18" TextColor="{StaticResource Success}"/>
+                            <Label Text="{Binding MomLabel}" FontSize="10"
+                                   TextColor="{StaticResource TextHint}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- ── Summary cards row 2 ──────────────────────────────── -->
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                        <VerticalStackLayout Padding="10,12" Spacing="3">
+                            <Label Text="📅  Avg/day" TextColor="{StaticResource TextSecondary}" FontSize="10"/>
+                            <Label Text="{Binding AvgDailySpend, StringFormat='Ksh {0:N0}'}"
+                                   FontAttributes="Bold" FontSize="14" TextColor="{StaticResource TextPrimary}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource CardStyle}">
+                        <VerticalStackLayout Padding="10,12" Spacing="3">
+                            <Label Text="🏦  M-Pesa fees" TextColor="{StaticResource TextSecondary}" FontSize="10"/>
+                            <Label Text="{Binding TotalFees, StringFormat='Ksh {0:N0}'}"
+                                   FontAttributes="Bold" FontSize="14" TextColor="{StaticResource Warning}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                        <VerticalStackLayout Padding="10,12" Spacing="3">
+                            <Label Text="🏦  Saved" TextColor="{StaticResource TextSecondary}" FontSize="10"/>
+                            <Label Text="{Binding TotalSavings, StringFormat='Ksh {0:N0}'}"
+                                   FontAttributes="Bold" FontSize="14" TextColor="#00C4B4"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- ── Daily spending chart ──────────────────────────────── -->
+                <Label FontAttributes="Bold" FontSize="14"
+                       TextColor="{StaticResource TextPrimary}" Margin="2,4,0,0">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="📊  Daily Spending — "/>
+                            <Span Text="{Binding ChartMonthLabel}" TextColor="{StaticResource Primary}"/>
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+                <Border Style="{StaticResource CardStyle}" Padding="12">
+                    <CollectionView ItemsSource="{Binding DailyBars}"
+                                    ItemsLayout="HorizontalList" HeightRequest="110">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="local:DailyBar">
+                                <VerticalStackLayout WidthRequest="9" Spacing="0" VerticalOptions="End">
+                                    <BoxView Color="Transparent" HeightRequest="{Binding SpacerHeight}" WidthRequest="7"/>
+                                    <BoxView BackgroundColor="{Binding BarColor}"
+                                             HeightRequest="{Binding BarHeight}" WidthRequest="7" CornerRadius="2"/>
+                                    <Label Text="{Binding DayLabel}" FontSize="7"
+                                           HorizontalOptions="Center" TextColor="{StaticResource TextHint}"
+                                           Margin="0,2,0,0"/>
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Border>
+
+                <!-- ── Spending by Category ──────────────────────────────── -->
+                <Label Text="🏷️  By Category" FontAttributes="Bold" FontSize="14"
+                       TextColor="{StaticResource TextPrimary}" Margin="2,4,0,0"/>
+                <Border Style="{StaticResource CardStyle}">
+                    <CollectionView ItemsSource="{Binding Categories}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="local:CategoryRow">
+                                <VerticalStackLayout Padding="16,10" Spacing="5">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" Text="{Binding Category}"
+                                               FontAttributes="Bold" FontSize="13"
+                                               TextColor="{StaticResource TextPrimary}"/>
+                                        <Label Grid.Column="1"
+                                               Text="{Binding Total, StringFormat='Ksh {0:N0}'}"
+                                               FontSize="13" TextColor="{StaticResource TextSecondary}"/>
+                                    </Grid>
+                                    <ProgressBar Progress="{Binding Share}"
+                                                 ProgressColor="{StaticResource Primary}" HeightRequest="6"/>
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Label Text="No transactions this month yet."
+                                   Padding="16" TextColor="{StaticResource TextHint}" FontSize="13"/>
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+                </Border>
+
+                <!-- ── Category vs last month ────────────────────────────── -->
+                <Label Text="📈  Category vs Last Month" FontAttributes="Bold" FontSize="14"
+                       TextColor="{StaticResource TextPrimary}" Margin="2,4,0,0"/>
+                <Border Style="{StaticResource CardStyle}">
+                    <CollectionView ItemsSource="{Binding CatCompare}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="local:CategoryCompRow">
+                                <Grid ColumnDefinitions="*,Auto,Auto" Padding="16,12" ColumnSpacing="10">
+                                    <Label Grid.Column="0" Text="{Binding Category}"
+                                           FontSize="13" TextColor="{StaticResource TextPrimary}"
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Column="1"
+                                           Text="{Binding Total, StringFormat='Ksh {0:N0}'}"
+                                           FontSize="12" TextColor="{StaticResource TextSecondary}"
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Column="2" Text="{Binding DeltaText}"
+                                           TextColor="{Binding DeltaColor}"
+                                           FontAttributes="Bold" FontSize="12"
+                                           VerticalOptions="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Label Text="No comparison data yet."
+                                   Padding="16" TextColor="{StaticResource TextHint}" FontSize="13"/>
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+                </Border>
+
+                <!-- ── Top merchants (till/paybill) ─────────────────────── -->
+                <Label Text="🏪  Top Merchants" FontAttributes="Bold" FontSize="14"
+                       TextColor="{StaticResource TextPrimary}" Margin="2,4,0,0"/>
+                <Border Style="{StaticResource CardStyle}">
+                    <CollectionView ItemsSource="{Binding Top}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,*,Auto" Padding="16,12" ColumnSpacing="12">
+                                    <Border Grid.Column="0" WidthRequest="32" HeightRequest="32"
+                                            BackgroundColor="{StaticResource SurfaceVariant}"
+                                            Stroke="Transparent" StrokeShape="RoundRectangle 8">
+                                        <Label Text="🏪" FontSize="14" HorizontalOptions="Center"
+                                               VerticalOptions="Center"/>
+                                    </Border>
+                                    <Label Grid.Column="1" Text="{Binding Name}"
+                                           TextColor="{StaticResource TextPrimary}" VerticalOptions="Center"/>
+                                    <Label Grid.Column="2"
+                                           Text="{Binding Total, StringFormat='Ksh {0:N0}'}"
+                                           TextColor="{StaticResource TextSecondary}"
+                                           FontAttributes="Bold" VerticalOptions="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Label Text="No merchant data yet." Padding="16"
+                                   TextColor="{StaticResource TextHint}" FontSize="13"/>
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+                </Border>
+
+                <!-- ── Top send-money recipients ────────────────────────── -->
+                <Label Text="📤  Top Send Money" FontAttributes="Bold" FontSize="14"
+                       TextColor="{StaticResource TextPrimary}" Margin="2,4,0,0"/>
+                <Border Style="{StaticResource CardStyle}">
+                    <CollectionView ItemsSource="{Binding TopSent}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Padding="16,12" ColumnSpacing="10">
+                                    <Border Grid.Column="0" WidthRequest="32" HeightRequest="32"
+                                            BackgroundColor="{StaticResource SurfaceVariant}"
+                                            Stroke="Transparent" StrokeShape="RoundRectangle 16">
+                                        <Label Text="👤" FontSize="14" HorizontalOptions="Center"
+                                               VerticalOptions="Center"/>
+                                    </Border>
+                                    <Label Grid.Column="1" Text="{Binding Name}"
+                                           TextColor="{StaticResource TextPrimary}" VerticalOptions="Center"/>
+                                    <Label Grid.Column="2"
+                                           Text="{Binding TransactionCount, StringFormat='{0}×'}"
+                                           FontSize="11" TextColor="{StaticResource TextHint}"
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Column="3"
+                                           Text="{Binding Total, StringFormat='Ksh {0:N0}'}"
+                                           TextColor="{StaticResource TextSecondary}"
+                                           FontAttributes="Bold" VerticalOptions="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Label Text="No send-money data yet." Padding="16"
+                                   TextColor="{StaticResource TextHint}" FontSize="13"/>
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+                </Border>
+
+                <!-- ── Divider ────────────────────────────────────────────── -->
+                <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}" Margin="0,8,0,0"/>
+                <VerticalStackLayout Spacing="2" Margin="2,8,0,4">
+                    <Label Text="💡  Observations" FontAttributes="Bold" FontSize="14"
+                           TextColor="{StaticResource TextPrimary}"/>
+                    <Label Text="{Binding PeriodLabel}" FontSize="11"
+                           TextColor="{StaticResource TextHint}"/>
+                </VerticalStackLayout>
+
+                <!-- ── Insight cards ──────────────────────────────────────── -->
+                <CollectionView ItemsSource="{Binding Insights}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="local:InsightRow">
+                            <Border BackgroundColor="{StaticResource Surface}" Margin="0,4"
+                                    Stroke="Transparent" StrokeShape="RoundRectangle 12">
+                                <Grid ColumnDefinitions="4,*" ColumnSpacing="0">
+                                    <BoxView Grid.Column="0" BackgroundColor="{Binding Accent}"
+                                             WidthRequest="4" CornerRadius="4,0,4,0"/>
+                                    <Grid Grid.Column="1" ColumnDefinitions="Auto,*"
+                                          Padding="14,14,14,14" ColumnSpacing="12">
+                                        <Label Grid.Column="0" Text="{Binding Icon}"
+                                               FontSize="22" VerticalOptions="Start"/>
+                                        <VerticalStackLayout Grid.Column="1" Spacing="5">
+                                            <Label Text="{Binding Title}" FontAttributes="Bold"
+                                                   FontSize="14" TextColor="{StaticResource TextPrimary}"/>
+                                            <Label Text="{Binding Body}" FontSize="13"
+                                                   TextColor="{StaticResource TextSecondary}"
+                                                   LineBreakMode="WordWrap"/>
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="10" Margin="0,32">
+                            <Label Text="📭" FontSize="40" HorizontalOptions="Center"/>
+                            <Label Text="No observations yet. Scan your M-Pesa messages."
+                                   FontSize="13" TextColor="{StaticResource TextHint}"
+                                   HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                </CollectionView>
+
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+    <Grid x:Name="LoadingOverlay" BackgroundColor="{StaticResource Background}">
+        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="16">
+            <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}"
+                               WidthRequest="48" HeightRequest="48"/>
+            <Label Text="Loading…" TextColor="{StaticResource TextSecondary}" FontSize="14"
+                   HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+    </Grid>
+    </Grid>
+
+</ContentPage>

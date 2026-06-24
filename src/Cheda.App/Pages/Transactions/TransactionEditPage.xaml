@@ -3,44 +3,212 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Cheda.App.Pages.Transactions.TransactionEditPage"
-    Title="Edit Transaction"
-    BackgroundColor="{StaticResource Surface}">
+    NavigationPage.HasNavigationBar="False"
+    BackgroundColor="{StaticResource Background}">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="24" Spacing="20">
+    <Grid RowDefinitions="Auto,*">
 
-            <Label Text="{Binding Counterparty}"
-                   FontSize="22" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}"/>
+        <!-- ── Top bar ──────────────────────────────────────────────────── -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*"
+              BackgroundColor="{StaticResource Surface}"
+              Padding="8,48,16,12">
+            <Button Grid.Column="0" Text="←" Command="{Binding GoBackCommand}"
+                    BackgroundColor="Transparent"
+                    TextColor="{StaticResource TextPrimary}"
+                    FontSize="22" WidthRequest="48" HeightRequest="44"/>
+            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                <Label Text="{Binding TypeLabel}"
+                       FontAttributes="Bold" FontSize="16"
+                       TextColor="{StaticResource TextPrimary}"/>
+                <Label Text="{Binding Counterparty}"
+                       FontSize="12" TextColor="{StaticResource Primary}"
+                       LineBreakMode="TailTruncation" MaxLines="1"/>
+            </VerticalStackLayout>
+        </Grid>
 
-            <Grid ColumnDefinitions="*,*">
-                <VerticalStackLayout Grid.Column="0" Spacing="2">
-                    <Label Text="Amount" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
-                    <Label Text="{Binding Amount, StringFormat='Ksh {0:N0}'}"
-                           FontAttributes="Bold" FontSize="18" TextColor="{StaticResource TextPrimary}"/>
-                </VerticalStackLayout>
-                <VerticalStackLayout Grid.Column="1" Spacing="2">
-                    <Label Text="Date" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
-                    <Label Text="{Binding Timestamp}" TextColor="{StaticResource TextPrimary}"/>
-                </VerticalStackLayout>
-            </Grid>
+        <!-- ── Body ─────────────────────────────────────────────────────── -->
+        <ScrollView Grid.Row="1" BackgroundColor="{StaticResource Background}">
+            <VerticalStackLayout Padding="16,12,16,32" Spacing="12">
 
-            <BoxView HeightRequest="1" Color="{StaticResource Divider}"/>
+                <!-- ── Amount hero card ────────────────────────────────── -->
+                <Border BackgroundColor="{StaticResource Surface}"
+                        Stroke="Transparent" StrokeShape="RoundRectangle 16">
+                    <VerticalStackLayout Padding="20,18">
 
-            <Label Text="Category" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
-            <Picker ItemsSource="{Binding Categories}"
-                    SelectedItem="{Binding SelectedCategory}"
-                    Title="Select category"/>
+                        <!-- Type icon + label row -->
+                        <HorizontalStackLayout Spacing="12" Margin="0,0,0,12">
+                            <Border WidthRequest="40" HeightRequest="40"
+                                    BackgroundColor="{StaticResource SurfaceVariant}"
+                                    Stroke="Transparent" StrokeShape="RoundRectangle 20">
+                                <Label Text="{Binding TypeIcon}" FontSize="20"
+                                       HorizontalOptions="Center" VerticalOptions="Center"/>
+                            </Border>
+                            <Label Text="{Binding TypeLabel}"
+                                   FontAttributes="Bold" FontSize="15"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
 
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,16,0,0">
-                <Button Grid.Column="0" Text="Cancel"
-                        Command="{Binding CancelCommand}"
-                        Style="{StaticResource SecondaryButtonStyle}"/>
-                <Button Grid.Column="1" Text="Save"
-                        Command="{Binding SaveCommand}"
-                        Style="{StaticResource PrimaryButtonStyle}"/>
-            </Grid>
+                        <!-- Big amount -->
+                        <Label FontAttributes="Bold" FontSize="34">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding AmountPrefix}" TextColor="{Binding AmountColor}"/>
+                                    <Span Text="Ksh " TextColor="{Binding AmountColor}"/>
+                                    <Span Text="{Binding Amount, StringFormat='{0:N2}'}" TextColor="{Binding AmountColor}"/>
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
 
-        </VerticalStackLayout>
-    </ScrollView>
+                        <!-- Date + balance after -->
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,10,0,0">
+                            <Label Grid.Column="0" Text="{Binding TimestampDisplay}"
+                                   FontSize="12" TextColor="{StaticResource TextHint}"
+                                   VerticalOptions="Center"/>
+                            <Border Grid.Column="1"
+                                    BackgroundColor="{StaticResource SurfaceVariant}"
+                                    Stroke="Transparent" StrokeShape="RoundRectangle 10"
+                                    Padding="10,5"
+                                    IsVisible="{Binding BalanceAfterLabel, Converter={StaticResource NullToBoolConverter}}">
+                                <Label FontSize="12" TextColor="{StaticResource TextSecondary}">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="After  "/>
+                                            <Span Text="{Binding BalanceAfterLabel}" FontAttributes="Bold"/>
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                            </Border>
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ── Details card ────────────────────────────────────── -->
+                <Border BackgroundColor="{StaticResource Surface}"
+                        Stroke="Transparent" StrokeShape="RoundRectangle 16">
+                    <VerticalStackLayout>
+
+                        <!-- Section header -->
+                        <Label Text="DETAILS" FontSize="11" FontAttributes="Bold"
+                               CharacterSpacing="1.5"
+                               TextColor="{StaticResource TextHint}"
+                               Margin="16,14,16,8"/>
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}"/>
+
+                        <!-- Transaction code row -->
+                        <Grid ColumnDefinitions="*,Auto" Padding="16,12">
+                            <Label Grid.Column="0" Text="Transaction Code"
+                                   FontSize="13" TextColor="{StaticResource TextSecondary}"
+                                   VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding Code}"
+                                   FontSize="13" FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}"
+                                 Margin="16,0"/>
+
+                        <!-- Category row (tap pencil to edit) -->
+                        <Grid ColumnDefinitions="*,Auto,Auto" Padding="16,12" ColumnSpacing="10">
+                            <Label Grid.Column="0" Text="Category"
+                                   FontSize="13" TextColor="{StaticResource TextSecondary}"
+                                   VerticalOptions="Center"/>
+                            <Border Grid.Column="1"
+                                    BackgroundColor="{StaticResource SurfaceVariant}"
+                                    Stroke="Transparent" StrokeShape="RoundRectangle 8"
+                                    Padding="8,4">
+                                <Label x:Name="CategoryChipLabel"
+                                       FontSize="12" TextColor="{StaticResource TextPrimary}"
+                                       VerticalOptions="Center"/>
+                            </Border>
+                            <Label Grid.Column="2" Text="✏️" FontSize="18"
+                                   VerticalOptions="Center">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnCategoryEditTapped"/>
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Grid>
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}"
+                                 Margin="16,0"/>
+
+                        <!-- To/From row -->
+                        <Grid ColumnDefinitions="*,Auto" Padding="16,12">
+                            <Label Grid.Column="0" Text="To / From"
+                                   FontSize="13" TextColor="{StaticResource TextSecondary}"
+                                   VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding Counterparty}"
+                                   FontSize="13" FontAttributes="Bold"
+                                   TextColor="{StaticResource Primary}"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}"
+                                 Margin="16,0"/>
+
+                        <!-- Balance after row -->
+                        <Grid ColumnDefinitions="*,Auto" Padding="16,12">
+                            <Label Grid.Column="0" Text="Balance After"
+                                   FontSize="13" TextColor="{StaticResource TextSecondary}"
+                                   VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding BalanceAfterLabel}"
+                                   FontSize="13" FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}"
+                                 Margin="16,0"/>
+
+                        <!-- SIM account row -->
+                        <Grid ColumnDefinitions="*,Auto" Padding="16,12">
+                            <Label Grid.Column="0" Text="M-Pesa Account"
+                                   FontSize="13" TextColor="{StaticResource TextSecondary}"
+                                   VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding SimLabel}"
+                                   FontSize="13" FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- ── Original SMS (expandable) ───────────────────────── -->
+                <Border BackgroundColor="{StaticResource Surface}"
+                        Stroke="Transparent" StrokeShape="RoundRectangle 16">
+                    <VerticalStackLayout>
+                        <!-- Header tap to expand -->
+                        <Grid ColumnDefinitions="*,Auto" Padding="16,14">
+                            <Label Grid.Column="0" Text="ORIGINAL SMS"
+                                   FontSize="11" FontAttributes="Bold"
+                                   CharacterSpacing="1.5"
+                                   TextColor="{StaticResource TextHint}"
+                                   VerticalOptions="Center"/>
+                            <Label Grid.Column="1"
+                                   Text="{Binding IsOriginalSmsExpanded, Converter={StaticResource BoolToChevronConverter}}"
+                                   FontSize="20" TextColor="{StaticResource TextSecondary}"
+                                   VerticalOptions="Center">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ToggleSmsCommand}"/>
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ToggleSmsCommand}"/>
+                            </Grid.GestureRecognizers>
+                        </Grid>
+                        <!-- SMS body -->
+                        <VerticalStackLayout IsVisible="{Binding IsOriginalSmsExpanded}">
+                            <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}"/>
+                            <Label Text="{Binding RawMessage}"
+                                   Padding="16,12"
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}"
+                                   LineBreakMode="WordWrap"/>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
 
 </ContentPage>

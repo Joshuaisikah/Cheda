@@ -34,6 +34,8 @@ public static class DefaultCategories
     public const string Betting          = "Betting/Gambling";
     public const string Savings          = "Savings";
     public const string MShwari          = "M-Shwari/Locked Savings";
+    public const string KcbMpesa         = "KCB M-Pesa Savings";
+    public const string ZidiiSavings     = "Zidii Savings";
     public const string SaccoChama       = "SACCO/Chama";
     public const string LoanRepayment    = "Loan Repayment";
     public const string Fuliza           = "Fuliza";
@@ -79,6 +81,8 @@ public static class DefaultCategories
         new(Betting,          CategoryGroup.Lifestyle),
         new(Savings,          CategoryGroup.Financial),
         new(MShwari,          CategoryGroup.Financial),
+        new(KcbMpesa,         CategoryGroup.Financial),
+        new(ZidiiSavings,     CategoryGroup.Financial),
         new(SaccoChama,       CategoryGroup.Financial),
         new(LoanRepayment,    CategoryGroup.Financial),
         new(Fuliza,           CategoryGroup.Financial),

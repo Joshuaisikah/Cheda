@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Cheda.Core.Categorization;
 using Cheda.Core.Models;
 using Cheda.Core.Storage;
 
@@ -8,15 +9,20 @@ namespace Cheda.App.Pages.Transactions;
 public partial class TransactionsViewModel : ViewModelBase
 {
     private readonly ITransactionRepository _repo;
+    private readonly ICategorizer           _categorizer;
     private IReadOnlyList<Transaction>      _all = [];
 
-    [ObservableProperty] private IReadOnlyList<Transaction> _transactions = [];
-    [ObservableProperty] private string _searchText  = "";
+    [ObservableProperty] private IReadOnlyList<TxRow> _transactions = [];
+    [ObservableProperty] private string _searchText   = "";
     [ObservableProperty] private string _activeFilter = "All";
 
     public string[] Filters { get; } = ["All", "This Month", "Last Month", "Expenses", "Income"];
 
-    public TransactionsViewModel(ITransactionRepository repo) => _repo = repo;
+    public TransactionsViewModel(ITransactionRepository repo, ICategorizer categorizer)
+    {
+        _repo        = repo;
+        _categorizer = categorizer;
+    }
 
     [RelayCommand]
     public async Task RefreshAsync() => await RunAsync(LoadAsync);
@@ -29,11 +35,11 @@ public partial class TransactionsViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task OpenEditAsync(Transaction tx)
+    private async Task OpenEditAsync(TxRow row)
     {
-        var page = new TransactionEditPage(new TransactionEditViewModel(tx, _repo));
-        await Shell.Current.Navigation.PushModalAsync(page);
-        await RefreshAsync();
+        var page = new TransactionEditPage(
+            new TransactionEditViewModel(row.Tx, _repo, _categorizer));
+        await Shell.Current.Navigation.PushAsync(page);
     }
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
@@ -68,6 +74,19 @@ public partial class TransactionsViewModel : ViewModelBase
                 (t.Category?.ToLowerInvariant().Contains(q) ?? false));
         }
 
-        Transactions = items.ToList();
+        Transactions = items.Select(t => new TxRow(t)).ToList();
     }
+}
+
+public sealed class TxRow(Transaction tx)
+{
+    public Transaction Tx               { get; } = tx;
+    public string TypeLabel             { get; } = TransactionEditViewModel.TypeLabelFor(tx.Type);
+    public string TypeIcon              { get; } = TransactionEditViewModel.TypeIconFor(tx.Type);
+    public Color  AccentColor           { get; } = TransactionEditViewModel.AccentColorFor(tx.Type);
+    public Color  AmountColor           { get; } = TransactionEditViewModel.AccentColorFor(tx.Type);
+    public string Counterparty          { get; } = tx.Counterparty ?? "—";
+    public string AmountLabel           { get; } = $"Ksh {tx.Amount:N0}";
+    public string DateLabel             { get; } = tx.Timestamp.LocalDateTime.ToString("dd MMM, HH:mm");
+    public string CategoryDisplay       { get; } = tx.Category ?? "Uncategorized";
 }

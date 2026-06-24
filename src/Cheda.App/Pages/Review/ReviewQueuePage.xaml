@@ -7,8 +7,9 @@
     Title="Review"
     BackgroundColor="{StaticResource Background}">
 
+    <Grid>
     <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
-        <CollectionView ItemsSource="{Binding Items}">
+        <CollectionView x:Name="ContentLayout" ItemsSource="{Binding Items}" Opacity="0">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="local:ReviewItem">
                     <Border Style="{StaticResource CardStyle}" Margin="8,4">
@@ -52,5 +53,15 @@
             </CollectionView.EmptyView>
         </CollectionView>
     </RefreshView>
+
+    <Grid x:Name="LoadingOverlay" BackgroundColor="{StaticResource Background}">
+        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="16">
+            <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}"
+                               WidthRequest="48" HeightRequest="48"/>
+            <Label Text="Loading…" TextColor="{StaticResource TextSecondary}" FontSize="14"
+                   HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+    </Grid>
+    </Grid>
 
 </ContentPage>

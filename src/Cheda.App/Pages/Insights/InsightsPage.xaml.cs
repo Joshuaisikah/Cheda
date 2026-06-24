@@ -1,14 +1,14 @@
-namespace Cheda.App.Pages.Dashboard;
+namespace Cheda.App.Pages.Insights;
 
-public partial class DashboardPage : ContentPage
+public partial class InsightsPage : ContentPage
 {
-    private readonly DashboardViewModel _vm;
     private bool _hasLoaded;
+    private readonly InsightsViewModel _vm;
 
-    public DashboardPage(DashboardViewModel vm)
+    public InsightsPage(InsightsViewModel vm)
     {
         InitializeComponent();
-        _vm            = vm;
+        _vm = vm;
         BindingContext = vm;
     }
 
@@ -17,16 +17,16 @@ public partial class DashboardPage : ContentPage
         await _vm.RefreshAsync();
         if (!_hasLoaded)
         {
-            _hasLoaded               = true;
+            _hasLoaded = true;
             LoadingOverlay.IsVisible = false;
 
-            // Start from below + invisible, animate up into place
-            ContentLayout.Opacity     = 0;
+            ContentLayout.Opacity      = 0;
             ContentLayout.TranslationY = 24;
-
             await Task.WhenAll(
                 ContentLayout.FadeToAsync(1, 400, Easing.CubicOut),
                 ContentLayout.TranslateToAsync(0, 0, 350, Easing.CubicOut));
         }
     }
+
+    protected override bool OnBackButtonPressed() => false;
 }

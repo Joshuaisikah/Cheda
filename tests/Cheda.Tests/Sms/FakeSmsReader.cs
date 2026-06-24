@@ -10,7 +10,9 @@ public sealed class FakeSmsReader : ISmsReader
     public FakeSmsReader(IEnumerable<SmsMessage>? messages = null) =>
         _messages = [.. messages ?? []];
 
-    public bool HasPermission { get; set; } = true;
+    public bool     HasPermission { get; set; } = true;
+    public int      LastRawCount  { get; private set; }
+    public string?  LastError     { get; private set; }
 
     public IReadOnlyList<SmsMessage> ReadInbox(DateTimeOffset? since = null)
     {

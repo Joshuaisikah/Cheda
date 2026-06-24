@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Cheda.App.Security;
+using Cheda.App.Storage;
 using Cheda.Core.Security;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Cheda.App.Pages.Onboarding;
 
@@ -11,6 +11,7 @@ public partial class OnboardingViewModel : ViewModelBase
     private readonly IAppLockService         _lock;
     private readonly IDatabaseKeyProvider    _keyProvider;
     private readonly SecureBiometricKeyStore _bioKeyStore;
+    private readonly DatabaseService         _db;
 
     [ObservableProperty] private int     _step         = 0;
     [ObservableProperty] private string  _pin          = "";
@@ -18,20 +19,29 @@ public partial class OnboardingViewModel : ViewModelBase
     [ObservableProperty] private string? _pinError;
     [ObservableProperty] private bool    _smsGranted;
 
+    public string ButtonLabel => Step switch
+    {
+        0 => "Get Started",
+        1 => "Set PIN",
+        _ => "Continue"
+    };
+
     public OnboardingViewModel(
         IAppLockService lockService,
         IDatabaseKeyProvider keyProvider,
-        SecureBiometricKeyStore bioKeyStore)
+        SecureBiometricKeyStore bioKeyStore,
+        DatabaseService db)
     {
         _lock        = lockService;
         _keyProvider = keyProvider;
         _bioKeyStore = bioKeyStore;
+        _db          = db;
     }
 
     [RelayCommand]
     private void Next()
     {
-        if (Step == 0) { Step = 1; return; }
+        if (Step == 0) { Step = 1; OnPropertyChanged(nameof(ButtonLabel)); return; }
         if (Step == 1) { TrySetPin(); return; }
         if (Step == 2) { Finish(); }
     }
@@ -51,19 +61,49 @@ public partial class OnboardingViewModel : ViewModelBase
 
         _ = Task.Run(async () =>
         {
-            await _lock.SetupPinAsync(Pin);
+            try
+            {
+                await _lock.SetupPinAsync(Pin);
 
-            // After setup, the PIN-derived DB key is cached in memory. Save it to
-            // SecureStorage so biometric unlock can retrieve it without the PIN.
-            var key = _keyProvider.GetKey();
-            if (key is not null)
-                _bioKeyStore.Save(key);
+                // DB key is now in memory — open the database with it.
+                await _db.InitializeAsync();
 
-            await MainThread.InvokeOnMainThreadAsync(() => Step = 2);
+                // Save key to SecureStorage for biometric unlock.
+                var key = _keyProvider.GetKey();
+                if (key is not null)
+                    _bioKeyStore.Save(key);
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    Step = 2;
+                    OnPropertyChanged(nameof(ButtonLabel));
+                });
+            }
+            catch (Exception ex)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                    PinError = $"Setup failed: {ex.Message}");
+            }
         });
     }
 
-    private static void Finish() =>
-        Application.Current!.Windows[0].Page =
-            IPlatformApplication.Current!.Services.GetRequiredService<AppShell>();
+    private static async void Finish()
+    {
+        var window = Application.Current!.Windows[0];
+
+        if (window.Page?.Navigation.ModalStack.Count > 0)
+        {
+            var shell = window.Page!;
+            await shell.Navigation.PopModalAsync(animated: false);
+            await shell.FadeToAsync(1, 250, Easing.CubicOut);
+        }
+        else
+        {
+            // Startup case: OnboardingPage IS the Window page — swap to Shell.
+            var shell   = IPlatformApplication.Current!.Services.GetRequiredService<AppShell>();
+            shell.Opacity = 0;
+            window.Page = shell;
+            await shell.FadeToAsync(1, 300, Easing.CubicOut);
+        }
+    }
 }

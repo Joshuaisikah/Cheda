@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#512BD4</color>
-    <color name="colorPrimaryDark">#2B0B98</color>
-    <color name="colorAccent">#2B0B98</color>
+    <color name="colorPrimary">#00875A</color>
+    <color name="colorPrimaryDark">#005C3D</color>
+    <color name="colorAccent">#34D399</color>
+    <!-- Used as the native window background before MAUI loads — prevents white flash -->
+    <color name="colorBackground">#0F172A</color>
+    <color name="colorSurface">#1E293B</color>
 </resources>

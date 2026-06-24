@@ -1,4 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="456" height="456" fill="#512BD4" />
+  <rect x="0" y="0" width="456" height="456" fill="#0A0A12"/>
+  <!-- Horizontal grid lines -->
+  <line x1="0" y1="152" x2="456" y2="152" stroke="#00FF9F" stroke-width="0.5" opacity="0.15"/>
+  <line x1="0" y1="304" x2="456" y2="304" stroke="#00FF9F" stroke-width="0.5" opacity="0.15"/>
+  <!-- Vertical grid lines -->
+  <line x1="152" y1="0" x2="152" y2="456" stroke="#00FF9F" stroke-width="0.5" opacity="0.15"/>
+  <line x1="304" y1="0" x2="304" y2="456" stroke="#00FF9F" stroke-width="0.5" opacity="0.15"/>
+  <!-- Outer glow ring -->
+  <circle cx="228" cy="228" r="160" stroke="#00FF9F" stroke-width="1" fill="none" opacity="0.2"/>
+  <!-- Main C arc - thick neon stroke -->
+  <path d="M 348 140 A 130 130 0 1 0 348 316" stroke="#00FF9F" stroke-width="24" fill="none" stroke-linecap="round"/>
+  <!-- Circuit trace from top of C -->
+  <line x1="348" y1="140" x2="348" y2="90" stroke="#00E5FF" stroke-width="3"/>
+  <line x1="348" y1="90" x2="400" y2="90" stroke="#00E5FF" stroke-width="3"/>
+  <circle cx="400" cy="90" r="7" fill="#00E5FF"/>
+  <circle cx="348" cy="90" r="5" fill="#00E5FF"/>
+  <!-- Circuit trace from bottom of C -->
+  <line x1="348" y1="316" x2="348" y2="366" stroke="#00E5FF" stroke-width="3"/>
+  <line x1="348" y1="366" x2="400" y2="366" stroke="#00E5FF" stroke-width="3"/>
+  <circle cx="400" cy="366" r="7" fill="#00E5FF"/>
+  <circle cx="348" cy="366" r="5" fill="#00E5FF"/>
+  <!-- Node at C centre-left -->
+  <circle cx="98" cy="228" r="6" fill="#00FF9F" opacity="0.6"/>
+  <!-- Inner dot -->
+  <circle cx="228" cy="228" r="4" fill="#00FF9F" opacity="0.3"/>
 </svg>

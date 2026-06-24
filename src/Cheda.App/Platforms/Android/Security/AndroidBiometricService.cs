@@ -10,14 +10,19 @@ namespace Cheda.App.Platforms.Android.Security;
 /// </summary>
 internal sealed class AndroidBiometricService : IBiometricService
 {
+    // Use Task.Run to avoid blocking the UI thread (GetResult on async inside a sync property
+    // causes a deadlock on the main thread on some MIUI versions).
+    // Allow alternative authentication (face/fingerprint) — MIUI may report fingerprint
+    // under allowAlternativeAuthentication:true even when strict biometric returns false.
     public bool IsAvailable
     {
         get
         {
             try
             {
-                return CrossFingerprint.Current
-                    .IsAvailableAsync(allowAlternativeAuthentication: false)
+                return Task.Run(async () =>
+                    await CrossFingerprint.Current.IsAvailableAsync(
+                        allowAlternativeAuthentication: true))
                     .GetAwaiter().GetResult();
             }
             catch { return false; }
@@ -31,7 +36,7 @@ internal sealed class AndroidBiometricService : IBiometricService
         {
             var config = new AuthenticationRequestConfiguration("Unlock Cheda", reason)
             {
-                AllowAlternativeAuthentication = false,
+                AllowAlternativeAuthentication = false, // prompt shows biometric only
             };
 
             var result = await CrossFingerprint.Current.AuthenticateAsync(config, ct);

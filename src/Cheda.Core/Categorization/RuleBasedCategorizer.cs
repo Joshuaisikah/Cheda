@@ -104,6 +104,8 @@ public sealed partial class RuleBasedCategorizer : ICategorizer
         TransactionType.Airtime  => Make(DefaultCategories.Airtime,          1.0, "Type: Airtime"),
         TransactionType.Withdrawn => Make(DefaultCategories.Withdrawals,      1.0, "Type: Withdrawal"),
         TransactionType.MShwari  => Make(DefaultCategories.MShwari,           1.0, "Type: M-Shwari"),
+        TransactionType.KcbMpesa => Make(DefaultCategories.KcbMpesa,          1.0, "Type: KCB M-Pesa"),
+        TransactionType.Zidii    => Make(DefaultCategories.ZidiiSavings,      1.0, "Type: Zidii"),
         TransactionType.Fuliza   => Make(DefaultCategories.Fuliza,            1.0, "Type: Fuliza"),
         TransactionType.Reversal => Make(DefaultCategories.RefundsReversals,  1.0, "Type: Reversal"),
         TransactionType.Deposit  => Make(DefaultCategories.Uncategorized,     0.9, "Type: Deposit"),

@@ -46,6 +46,16 @@ public sealed class EqualConverter : IValueConverter
         throw new NotSupportedException();
 }
 
+// True when bool is true, returns "∧" else "∨"
+public sealed class BoolToChevronConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is true ? "∧" : "∨";
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
 // PIN dot: returns filled color if the dot index (1-based) <= entered digits length
 public sealed class PinDotConverter : IValueConverter
 {

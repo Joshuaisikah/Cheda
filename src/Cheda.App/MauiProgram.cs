@@ -1,8 +1,10 @@
 using Cheda.App.Converters;
 using Cheda.App.Pages.Analytics;
 using Cheda.App.Pages.Dashboard;
+using Cheda.App.Pages.Insights;
 using Cheda.App.Pages.Lock;
 using Cheda.App.Pages.Onboarding;
+using Cheda.App.Pages.Plan;
 using Cheda.App.Pages.Review;
 using Cheda.App.Pages.Settings;
 using Cheda.App.Pages.Transactions;
@@ -81,6 +83,7 @@ public static class MauiProgram
         {
             var engine = new ParserEngine();
             engine.Register(new MpesaParser());
+            engine.Register(new EquityBankParser());
             return engine;
         });
 
@@ -125,6 +128,8 @@ public static class MauiProgram
         services.AddTransient<TransactionsViewModel>();
         services.AddTransient<ReviewQueueViewModel>();
         services.AddTransient<AnalyticsViewModel>();
+        services.AddTransient<PlanViewModel>();
+        services.AddTransient<InsightsViewModel>();
         services.AddTransient<SettingsViewModel>();
 
         // Shell (singleton — one instance for the authenticated session)
@@ -137,6 +142,8 @@ public static class MauiProgram
         services.AddTransient<TransactionsPage>();
         services.AddTransient<ReviewQueuePage>();
         services.AddTransient<AnalyticsPage>();
+        services.AddTransient<PlanPage>();
+        services.AddTransient<InsightsPage>();
         services.AddTransient<SettingsPage>();
     }
 }

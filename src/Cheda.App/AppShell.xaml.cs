@@ -1,9 +1,8 @@
-using Cheda.App.Pages.Analytics;
 using Cheda.App.Pages.Dashboard;
-using Cheda.App.Pages.Review;
+using Cheda.App.Pages.Insights;
+using Cheda.App.Pages.Plan;
 using Cheda.App.Pages.Settings;
 using Cheda.App.Pages.Transactions;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Cheda.App;
 
@@ -12,17 +11,29 @@ public partial class AppShell : Shell
     public AppShell(
         DashboardPage    home,
         TransactionsPage txns,
-        ReviewQueuePage  review,
-        AnalyticsPage    analytics,
+        PlanPage         plan,
+        InsightsPage     insights,
         SettingsPage     settings)
     {
+        // Opacity=0 so the fade-in from LockViewModel/OnboardingViewModel starts from invisible.
+        Opacity = 0;
         InitializeComponent();
 
-        // Wire DI-resolved pages to shell tabs
         HomeTab.ContentTemplate         = new DataTemplate(() => home);
         TransactionsTab.ContentTemplate = new DataTemplate(() => txns);
-        ReviewTab.ContentTemplate       = new DataTemplate(() => review);
-        AnalyticsTab.ContentTemplate    = new DataTemplate(() => analytics);
+        PlanTab.ContentTemplate         = new DataTemplate(() => plan);
+        InsightsTab.ContentTemplate     = new DataTemplate(() => insights);
         SettingsTab.ContentTemplate     = new DataTemplate(() => settings);
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        var tabBar = (TabBar)Items[0];
+        if (tabBar.CurrentItem != tabBar.Items[0])
+        {
+            tabBar.CurrentItem = tabBar.Items[0];
+            return true;
+        }
+        return false;
     }
 }

@@ -14,5 +14,7 @@ public interface IInsightsEngine
         IReadOnlyList<Budget> budgets,
         IReadOnlyList<RecurringBill> bills,
         IReadOnlyList<BillOccurrence> billOccurrences,
-        DateTimeOffset asOf);
+        DateTimeOffset asOf,
+        string? currentPeriodLabel  = null,
+        string? previousPeriodLabel = null);
 }

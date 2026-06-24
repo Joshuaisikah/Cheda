@@ -17,6 +17,7 @@
             <conv:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter"/>
             <conv:EqualConverter          x:Key="EqualConverter"/>
             <conv:PinDotConverter         x:Key="PinDotConverter"/>
+            <conv:BoolToChevronConverter  x:Key="BoolToChevronConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

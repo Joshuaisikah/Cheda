@@ -3,48 +3,49 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- Brand — Safaricom/M-Pesa green -->
+    <!-- Brand — M-Pesa green -->
     <Color x:Key="Primary">#00875A</Color>
     <Color x:Key="PrimaryDark">#005E3F</Color>
-    <Color x:Key="PrimaryLight">#E6F7F1</Color>
+    <Color x:Key="PrimaryLight">#003D29</Color>
 
     <!-- Semantic -->
-    <Color x:Key="Danger">#DC2626</Color>
-    <Color x:Key="Warning">#D97706</Color>
-    <Color x:Key="Success">#16A34A</Color>
+    <Color x:Key="Danger">#EF4444</Color>
+    <Color x:Key="Warning">#F59E0B</Color>
+    <Color x:Key="Success">#10B981</Color>
 
-    <!-- Surface -->
-    <Color x:Key="Background">#F4F6F8</Color>
-    <Color x:Key="Surface">#FFFFFF</Color>
-    <Color x:Key="SurfaceVariant">#F0F4F3</Color>
-    <Color x:Key="Divider">#E5E7EB</Color>
+    <!-- Dark surface hierarchy -->
+    <Color x:Key="Background">#0F172A</Color>
+    <Color x:Key="Surface">#1E293B</Color>
+    <Color x:Key="SurfaceVariant">#263447</Color>
+    <Color x:Key="Divider">#334155</Color>
 
-    <!-- Text -->
-    <Color x:Key="TextPrimary">#111827</Color>
-    <Color x:Key="TextSecondary">#6B7280</Color>
-    <Color x:Key="TextHint">#9CA3AF</Color>
+    <!-- Text on dark -->
+    <Color x:Key="TextPrimary">#F1F5F9</Color>
+    <Color x:Key="TextSecondary">#94A3B8</Color>
+    <Color x:Key="TextHint">#475569</Color>
     <Color x:Key="TextOnPrimary">#FFFFFF</Color>
 
     <!-- PIN pad -->
-    <Color x:Key="PinDotEmpty">#D1D5DB</Color>
+    <Color x:Key="PinDotEmpty">#334155</Color>
     <Color x:Key="PinDotFilled">#00875A</Color>
 
-    <!-- Legacy keys kept so Styles.xaml references still resolve -->
-    <Color x:Key="White">White</Color>
-    <Color x:Key="Black">Black</Color>
-    <Color x:Key="OffBlack">#1C1C1E</Color>
-    <Color x:Key="MidnightBlue">#1E3A5F</Color>
+    <!-- Legacy aliases so framework styles don't break -->
+    <Color x:Key="Secondary">#263447</Color>
+    <Color x:Key="White">#FFFFFF</Color>
+    <Color x:Key="Black">#000000</Color>
+    <Color x:Key="OffBlack">#0F172A</Color>
+    <Color x:Key="MidnightBlue">#1E293B</Color>
     <Color x:Key="Magenta">#00875A</Color>
-    <Color x:Key="PrimaryDarkText">#FFFFFF</Color>
-    <Color x:Key="SecondaryDarkText">#E5E7EB</Color>
-    <Color x:Key="Gray100">#E1E1E1</Color>
-    <Color x:Key="Gray200">#C8C8C8</Color>
-    <Color x:Key="Gray300">#ACACAC</Color>
-    <Color x:Key="Gray400">#919191</Color>
-    <Color x:Key="Gray500">#6E6E6E</Color>
-    <Color x:Key="Gray600">#404040</Color>
-    <Color x:Key="Gray900">#212121</Color>
-    <Color x:Key="Gray950">#141414</Color>
+    <Color x:Key="PrimaryDarkText">#F1F5F9</Color>
+    <Color x:Key="SecondaryDarkText">#94A3B8</Color>
+    <Color x:Key="Gray100">#334155</Color>
+    <Color x:Key="Gray200">#475569</Color>
+    <Color x:Key="Gray300">#64748B</Color>
+    <Color x:Key="Gray400">#94A3B8</Color>
+    <Color x:Key="Gray500">#CBD5E1</Color>
+    <Color x:Key="Gray600">#E2E8F0</Color>
+    <Color x:Key="Gray900">#F1F5F9</Color>
+    <Color x:Key="Gray950">#F8FAFC</Color>
 
     <SolidColorBrush x:Key="PrimaryBrush"    Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="WhiteBrush"      Color="{StaticResource White}"/>

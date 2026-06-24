@@ -12,14 +12,18 @@ namespace Cheda.App.Platforms.Android.Sms;
 /// piped through the ImportService pipeline (parse → categorize → persist), then
 /// AlertCoordinator evaluates and dispatches any relevant notifications.
 /// </summary>
-[BroadcastReceiver(Enabled = true, Exported = false)]
+[BroadcastReceiver(Enabled = true, Exported = true)]
 [global::Android.App.IntentFilter(
     ["android.provider.Telephony.SMS_RECEIVED"],
     Priority = 0)]
 public sealed class SmsBroadcastReceiver : BroadcastReceiver
 {
     private static readonly HashSet<string> FinancialSenders =
-        new(StringComparer.OrdinalIgnoreCase) { "MPESA" };
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "MPESA", "M-PESA", "SAFARICOM", "22141",    // M-Pesa
+            "Equity Bank", "EquityBank", "0763000000",   // Equity Bank
+        };
 
     public override void OnReceive(Context? context, Intent? intent)
     {

@@ -7,4 +7,7 @@ public partial class OnboardingPage : ContentPage
         InitializeComponent();
         BindingContext = vm;
     }
+
+    // Prevent back-swipe from skipping onboarding
+    protected override bool OnBackButtonPressed() => true;
 }

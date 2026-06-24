@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App theme: dark background so the native window shows dark before MAUI loads.
+         This eliminates the white flash between splash screen and first MAUI frame. -->
+    <style name="Maui.SplashTheme" parent="Theme.AppCompat.Light">
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:statusBarColor">@color/colorBackground</item>
+        <item name="android:navigationBarColor">@color/colorBackground</item>
+    </style>
+
+    <style name="Maui.MainTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:statusBarColor">@color/colorBackground</item>
+        <item name="android:navigationBarColor">@color/colorBackground</item>
+        <item name="android:navigationBarDividerColor">@color/colorBackground</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <!-- Remove the white elevation shadow above the bottom tab bar -->
+        <item name="bottomNavigationStyle">@style/Cheda.BottomNav</item>
+    </style>
+
+    <!-- Zero-elevation bottom navigation so no white line appears above it -->
+    <style name="Cheda.BottomNav" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="android:elevation">0dp</item>
+        <item name="elevation">0dp</item>
+        <item name="android:background">@color/colorSurface</item>
+    </style>
+</resources>

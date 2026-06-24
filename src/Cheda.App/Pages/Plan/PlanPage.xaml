@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Cheda.App.Pages.Plan"
+    xmlns:bills="clr-namespace:Cheda.Core.Bills;assembly=Cheda.Core"
+    x:Class="Cheda.App.Pages.Plan.PlanPage"
+    Title="Plan"
+    BackgroundColor="{StaticResource Background}">
+
+    <Grid>
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
+        <ScrollView BackgroundColor="{StaticResource Background}">
+            <VerticalStackLayout x:Name="ContentLayout" Padding="16" Spacing="20" Opacity="0">
+
+                <!-- ── BUDGETS ─────────────────────────────────────────── -->
+                <Label Text="Budgets" FontAttributes="Bold" FontSize="18"
+                       TextColor="{StaticResource TextPrimary}"/>
+
+                <!-- Add budget form -->
+                <Border Style="{StaticResource CardStyle}">
+                    <VerticalStackLayout Padding="16" Spacing="10">
+                        <Label Text="Add Budget" FontAttributes="Bold" FontSize="14"
+                               TextColor="{StaticResource TextSecondary}"/>
+                        <Border BackgroundColor="{StaticResource SurfaceVariant}"
+                                Stroke="{StaticResource Divider}" StrokeShape="RoundRectangle 8"
+                                StrokeThickness="1" Padding="12,0">
+                            <Entry Placeholder="Category (e.g. Groceries)"
+                                   Text="{Binding NewCategory}"
+                                   PlaceholderColor="{StaticResource TextHint}"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   BackgroundColor="Transparent" HeightRequest="44"/>
+                        </Border>
+                        <Border BackgroundColor="{StaticResource SurfaceVariant}"
+                                Stroke="{StaticResource Divider}" StrokeShape="RoundRectangle 8"
+                                StrokeThickness="1" Padding="12,0">
+                            <Entry Placeholder="Monthly limit (Ksh)"
+                                   Text="{Binding NewLimit}"
+                                   Keyboard="Numeric"
+                                   PlaceholderColor="{StaticResource TextHint}"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   BackgroundColor="Transparent" HeightRequest="44"/>
+                        </Border>
+                        <Label Text="{Binding BudgetError}" TextColor="{StaticResource Danger}"
+                               FontSize="12" IsVisible="{Binding HasBudgetError}"/>
+                        <Button Text="Add Budget" Command="{Binding AddBudgetCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}" HeightRequest="44"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Budget list -->
+                <CollectionView ItemsSource="{Binding Budgets}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="local:BudgetRow">
+                            <Border Style="{StaticResource CardStyle}" Margin="0,4">
+                                <Grid Padding="16,14">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="8"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <!-- Header row -->
+                                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0" Text="{Binding Category}"
+                                               FontAttributes="Bold" FontSize="14"
+                                               TextColor="{StaticResource TextPrimary}"/>
+                                        <Label Grid.Column="1" Text="{Binding LimitLabel}"
+                                               FontSize="12" TextColor="{StaticResource TextSecondary}"/>
+                                    </Grid>
+                                    <!-- Progress bar -->
+                                    <ProgressBar Grid.Row="1" Progress="{Binding Progress}"
+                                                 ProgressColor="{Binding ProgressColor}"
+                                                 HeightRequest="6" Margin="0,6"/>
+                                    <!-- Spent / remaining -->
+                                    <Grid Grid.Row="2" ColumnDefinitions="*,*">
+                                        <Label Grid.Column="0" Text="{Binding SpentLabel}"
+                                               FontSize="12" TextColor="{StaticResource TextSecondary}"/>
+                                        <Label Grid.Column="1" Text="{Binding RemainingLabel}"
+                                               FontSize="12" TextColor="{Binding ProgressColor}"
+                                               HorizontalOptions="End"/>
+                                    </Grid>
+                                    <!-- Delete button -->
+                                    <Button Grid.Row="3" Text="Remove"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteBudgetCommand}"
+                                            CommandParameter="{Binding .}"
+                                            Style="{StaticResource DangerButtonStyle}"
+                                            HeightRequest="32" FontSize="11"
+                                            HorizontalOptions="End" Margin="0,8,0,0"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    <CollectionView.EmptyView>
+                        <Label Text="No budgets yet. Add one above."
+                               TextColor="{StaticResource TextHint}" FontSize="13"
+                               HorizontalOptions="Center" Margin="0,8"/>
+                    </CollectionView.EmptyView>
+                </CollectionView>
+
+                <!-- ── BILLS ───────────────────────────────────────────── -->
+                <Label Text="Bills" FontAttributes="Bold" FontSize="18"
+                       TextColor="{StaticResource TextPrimary}" Margin="0,8,0,0"/>
+
+                <!-- Due this week total -->
+                <Border Style="{StaticResource CardStyle}">
+                    <Grid ColumnDefinitions="*,Auto" Padding="16,12">
+                        <Label Grid.Column="0" Text="Due this week"
+                               TextColor="{StaticResource TextSecondary}" FontSize="14"
+                               VerticalOptions="Center"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding UpcomingTotal, StringFormat='Ksh {0:N0}'}"
+                               FontAttributes="Bold" FontSize="16"
+                               TextColor="{StaticResource Warning}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Overdue bills -->
+                <Label Text="Overdue" FontSize="14" FontAttributes="Bold"
+                       TextColor="{StaticResource Danger}"
+                       IsVisible="{Binding HasOverdue}"/>
+                <CollectionView ItemsSource="{Binding Overdue}" IsVisible="{Binding HasOverdue}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="bills:UpcomingBill">
+                            <Border Style="{StaticResource CardStyle}" Margin="0,4"
+                                    BackgroundColor="{StaticResource PrimaryLight}">
+                                <Grid ColumnDefinitions="*,Auto" Padding="16,12">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                        <Label Text="{Binding Bill.Label}" FontAttributes="Bold"
+                                               FontSize="14" TextColor="{StaticResource TextPrimary}"/>
+                                        <Label Text="{Binding DueDate, StringFormat='Was due {0:dd MMM}'}"
+                                               FontSize="12" TextColor="{StaticResource Danger}"/>
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="1"
+                                           Text="{Binding ExpectedAmount, StringFormat='Ksh {0:N0}'}"
+                                           FontAttributes="Bold" TextColor="{StaticResource Danger}"
+                                           VerticalOptions="Center"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Upcoming bills -->
+                <Label Text="Upcoming (30 days)" FontSize="14" FontAttributes="Bold"
+                       TextColor="{StaticResource TextSecondary}"/>
+                <CollectionView ItemsSource="{Binding Upcoming}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="bills:UpcomingBill">
+                            <Border Style="{StaticResource CardStyle}" Margin="0,4">
+                                <Grid ColumnDefinitions="*,Auto" Padding="16,12">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                        <Label Text="{Binding Bill.Label}" FontAttributes="Bold"
+                                               FontSize="14" TextColor="{StaticResource TextPrimary}"/>
+                                        <Label Text="{Binding DueDate, StringFormat='Due {0:dd MMM}'}"
+                                               FontSize="12" TextColor="{StaticResource TextSecondary}"/>
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="1" HorizontalOptions="End" Spacing="2">
+                                        <Label Text="{Binding ExpectedAmount, StringFormat='Ksh {0:N0}'}"
+                                               FontAttributes="Bold" FontSize="14"
+                                               TextColor="{StaticResource TextPrimary}" HorizontalOptions="End"/>
+                                        <Label Text="{Binding DaysUntilDue, StringFormat='{0}d'}"
+                                               FontSize="11" TextColor="{StaticResource TextHint}"
+                                               HorizontalOptions="End"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    <CollectionView.EmptyView>
+                        <Label Text="No bills configured. Add recurring bills in Settings."
+                               TextColor="{StaticResource TextHint}" FontSize="13"
+                               HorizontalOptions="Center" Margin="0,8"/>
+                    </CollectionView.EmptyView>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+    <Grid x:Name="LoadingOverlay" BackgroundColor="{StaticResource Background}">
+        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="16">
+            <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}"
+                               WidthRequest="48" HeightRequest="48"/>
+            <Label Text="Loading…" TextColor="{StaticResource TextSecondary}" FontSize="14"
+                   HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+    </Grid>
+    </Grid>
+
+</ContentPage>

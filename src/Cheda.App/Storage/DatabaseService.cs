@@ -32,6 +32,8 @@ public sealed class DatabaseService : IDisposable
     public string DbPath { get; } = Path.Combine(
         FileSystem.AppDataDirectory, "cheda.db3");
 
+    public bool IsInitialized => _connection is not null;
+
     public SQLiteConnection Db =>
         _connection ?? throw new InvalidOperationException(
             "DatabaseService not initialized. Call InitializeAsync() after authentication.");
@@ -70,6 +72,7 @@ public sealed class DatabaseService : IDisposable
         db.CreateTable<RecurringBillEntity>();
         db.CreateTable<BillOccurrenceEntity>();
         db.CreateTable<SettingsEntity>();
+        KenyaDefaultRules.SeedIfEmpty(db);
     }
 
     // sqlite-net-pcl 1.9.172 has no CreateFlags.MigrateTable.
@@ -94,6 +97,7 @@ public sealed class DatabaseService : IDisposable
             if (!existing.Contains(col.ToLowerInvariant()))
                 db.Execute($"ALTER TABLE LearnedMappings ADD COLUMN {col} {type}");
     }
+
 
     /// <summary>
     /// Closes the connection so the database file can be safely copied (backup/restore).

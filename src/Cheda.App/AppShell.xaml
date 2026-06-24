@@ -9,11 +9,11 @@
     Shell.TabBarUnselectedColor="{StaticResource TextSecondary}">
 
     <TabBar>
-        <ShellContent x:Name="HomeTab"         Title="Home"         Icon="tab_home.png"/>
-        <ShellContent x:Name="TransactionsTab" Title="Transactions" Icon="tab_list.png"/>
-        <ShellContent x:Name="ReviewTab"       Title="Review"       Icon="tab_review.png"/>
-        <ShellContent x:Name="AnalyticsTab"    Title="Analytics"    Icon="tab_chart.png"/>
-        <ShellContent x:Name="SettingsTab"     Title="Settings"     Icon="tab_settings.png"/>
+        <ShellContent x:Name="HomeTab"         Title="Home"    Icon="tab_home.svg"/>
+        <ShellContent x:Name="TransactionsTab" Title="Money"   Icon="tab_list.svg"/>
+        <ShellContent x:Name="PlanTab"         Title="Plan"    Icon="tab_wallet.png"/>
+        <ShellContent x:Name="InsightsTab"     Title="Reports" Icon="tab_chart.svg"/>
+        <ShellContent x:Name="SettingsTab"     Title="More"    Icon="tab_settings.svg"/>
     </TabBar>
 
 </Shell>

@@ -7,91 +7,171 @@
     Title="Analytics"
     BackgroundColor="{StaticResource Background}">
 
+    <Grid>
     <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
-        <ScrollView>
-            <VerticalStackLayout Padding="16" Spacing="16">
+        <ScrollView BackgroundColor="{StaticResource Background}">
+            <VerticalStackLayout x:Name="ContentLayout" Padding="16" Spacing="16" Opacity="0">
 
                 <!-- Summary cards -->
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                     <Border Grid.Column="0" Style="{StaticResource CardStyle}">
-                        <VerticalStackLayout Padding="14" Spacing="2">
-                            <Label Text="Spent" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                        <VerticalStackLayout Padding="14" Spacing="4">
+                            <Label Text="💸  Spent" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
                             <Label Text="{Binding TotalSpent, StringFormat='Ksh {0:N0}'}"
-                                   FontAttributes="Bold" TextColor="{StaticResource Danger}"/>
+                                   FontAttributes="Bold" FontSize="16" TextColor="{StaticResource Danger}"/>
                         </VerticalStackLayout>
                     </Border>
                     <Border Grid.Column="1" Style="{StaticResource CardStyle}">
-                        <VerticalStackLayout Padding="14" Spacing="2">
-                            <Label Text="Received" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                        <VerticalStackLayout Padding="14" Spacing="4">
+                            <Label Text="💰  Received" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
                             <Label Text="{Binding TotalIncome, StringFormat='Ksh {0:N0}'}"
-                                   FontAttributes="Bold" TextColor="{StaticResource Success}"/>
+                                   FontAttributes="Bold" FontSize="16" TextColor="{StaticResource Success}"/>
                         </VerticalStackLayout>
                     </Border>
                 </Grid>
 
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                     <Border Grid.Column="0" Style="{StaticResource CardStyle}">
-                        <VerticalStackLayout Padding="14" Spacing="2">
-                            <Label Text="Fees" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                        <VerticalStackLayout Padding="14" Spacing="4">
+                            <Label Text="🏦  Fees" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
                             <Label Text="{Binding TotalFees, StringFormat='Ksh {0:N0}'}"
-                                   FontAttributes="Bold" TextColor="{StaticResource Warning}"/>
+                                   FontAttributes="Bold" FontSize="16" TextColor="{StaticResource Warning}"/>
                         </VerticalStackLayout>
                     </Border>
                     <Border Grid.Column="1" Style="{StaticResource CardStyle}">
-                        <VerticalStackLayout Padding="14" Spacing="2">
-                            <Label Text="vs Last Month" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
-                            <Label Text="{Binding MomLabel}" FontAttributes="Bold"
+                        <VerticalStackLayout Padding="14" Spacing="4">
+                            <Label Text="📅  vs Last Month" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
+                            <Label Text="{Binding MomLabel}" FontAttributes="Bold" FontSize="15"
                                    TextColor="{StaticResource TextPrimary}"/>
                         </VerticalStackLayout>
                     </Border>
                 </Grid>
 
-                <!-- Spending by category (bar chart using progress bars) -->
-                <Label Text="By Category" FontAttributes="Bold" FontSize="16"
-                       TextColor="{StaticResource TextPrimary}" Margin="4,8,0,0"/>
+                <!-- ── Daily spending chart ─────────────────────────── -->
+                <VerticalStackLayout Spacing="6">
+                    <Label FontAttributes="Bold" FontSize="16"
+                           TextColor="{StaticResource TextPrimary}" Margin="4,8,0,0">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="📊  Daily Spending — "/>
+                                <Span Text="{Binding ChartMonthLabel}"
+                                      TextColor="{StaticResource Primary}"/>
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+
+                    <Border Style="{StaticResource CardStyle}" Padding="12">
+                        <!-- Bar chart: each bar is a VerticalStackLayout with spacer + bar + label -->
+                        <CollectionView ItemsSource="{Binding DailyBars}"
+                                        ItemsLayout="HorizontalList"
+                                        HeightRequest="110">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="local:DailyBar">
+                                    <VerticalStackLayout WidthRequest="9" Spacing="0"
+                                                         VerticalOptions="End">
+                                        <!-- Invisible top spacer to push bar to the bottom -->
+                                        <BoxView Color="Transparent"
+                                                 HeightRequest="{Binding SpacerHeight}"
+                                                 WidthRequest="7"/>
+                                        <!-- The bar itself -->
+                                        <BoxView BackgroundColor="{Binding BarColor}"
+                                                 HeightRequest="{Binding BarHeight}"
+                                                 WidthRequest="7"
+                                                 CornerRadius="2"/>
+                                        <!-- Day label (only every 5th day) -->
+                                        <Label Text="{Binding DayLabel}"
+                                               FontSize="7" HorizontalOptions="Center"
+                                               TextColor="{StaticResource TextHint}"
+                                               Margin="0,2,0,0"/>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Border>
+
+                    <!-- Legend -->
+                    <HorizontalStackLayout Spacing="16" HorizontalOptions="Center">
+                        <HorizontalStackLayout Spacing="4">
+                            <BoxView Color="#00875A" WidthRequest="10" HeightRequest="10"
+                                     CornerRadius="2" VerticalOptions="Center"/>
+                            <Label Text="Today" FontSize="11"
+                                   TextColor="{StaticResource TextSecondary}"/>
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4">
+                            <BoxView Color="#34D399" WidthRequest="10" HeightRequest="10"
+                                     CornerRadius="2" VerticalOptions="Center"/>
+                            <Label Text="Spent" FontSize="11"
+                                   TextColor="{StaticResource TextSecondary}"/>
+                        </HorizontalStackLayout>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+
+                <!-- ── Spending by category ─────────────────────────── -->
+                <Label Text="🏷️  By Category" FontAttributes="Bold" FontSize="16"
+                       TextColor="{StaticResource TextPrimary}" Margin="4,4,0,0"/>
 
                 <Border Style="{StaticResource CardStyle}">
-                    <CollectionView ItemsSource="{Binding Categories}" HeightRequest="240">
+                    <CollectionView ItemsSource="{Binding Categories}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="local:CategoryRow">
-                                <VerticalStackLayout Padding="16,8" Spacing="4">
+                                <VerticalStackLayout Padding="16,10" Spacing="5">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <Label Grid.Column="0" Text="{Binding Category}"
-                                               TextColor="{StaticResource TextPrimary}" FontSize="13"/>
+                                               TextColor="{StaticResource TextPrimary}" FontSize="13"
+                                               FontAttributes="Bold"/>
                                         <Label Grid.Column="1"
                                                Text="{Binding Total, StringFormat='Ksh {0:N0}'}"
                                                FontSize="13" TextColor="{StaticResource TextSecondary}"/>
                                     </Grid>
                                     <ProgressBar Progress="{Binding Share}" ProgressColor="{StaticResource Primary}"
-                                                 HeightRequest="6"/>
+                                                 HeightRequest="8"/>
                                 </VerticalStackLayout>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
                 </Border>
 
-                <!-- Top merchants -->
-                <Label Text="Top Merchants" FontAttributes="Bold" FontSize="16"
-                       TextColor="{StaticResource TextPrimary}" Margin="4,8,0,0"/>
+                <!-- ── Top Merchants ───────────────────────────────── -->
+                <Label Text="🏪  Top Merchants" FontAttributes="Bold" FontSize="16"
+                       TextColor="{StaticResource TextPrimary}" Margin="4,4,0,0"/>
 
                 <Border Style="{StaticResource CardStyle}">
                     <CollectionView ItemsSource="{Binding Top}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Grid ColumnDefinitions="*,Auto" Padding="16,10">
-                                    <Label Grid.Column="0" Text="{Binding Name}"
-                                           TextColor="{StaticResource TextPrimary}"/>
-                                    <Label Grid.Column="1"
+                                <Grid ColumnDefinitions="Auto,*,Auto" Padding="16,12" ColumnSpacing="12">
+                                    <Border Grid.Column="0" WidthRequest="32" HeightRequest="32"
+                                            BackgroundColor="{StaticResource SurfaceVariant}"
+                                            Stroke="Transparent" StrokeShape="RoundRectangle 8">
+                                        <Label Text="🏪" FontSize="14" HorizontalOptions="Center"
+                                               VerticalOptions="Center"/>
+                                    </Border>
+                                    <Label Grid.Column="1" Text="{Binding Name}"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Column="2"
                                            Text="{Binding Total, StringFormat='Ksh {0:N0}'}"
-                                           TextColor="{StaticResource TextSecondary}"/>
+                                           TextColor="{StaticResource TextSecondary}"
+                                           FontAttributes="Bold" VerticalOptions="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
                 </Border>
 
+                <BoxView HeightRequest="24" Color="Transparent"/>
             </VerticalStackLayout>
         </ScrollView>
     </RefreshView>
+
+    <Grid x:Name="LoadingOverlay" BackgroundColor="{StaticResource Background}">
+        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="16">
+            <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}"
+                               WidthRequest="48" HeightRequest="48"/>
+            <Label Text="Loading…" TextColor="{StaticResource TextSecondary}" FontSize="14"
+                   HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+    </Grid>
+    </Grid>
 
 </ContentPage>

@@ -9,13 +9,15 @@ public sealed class SqliteSettingsRepository : ISettingsRepository
 
     public SqliteSettingsRepository(DatabaseService db) => _db = db;
 
-    public string? Get(string key) =>
-        _db.Db.Table<SettingsEntity>()
-              .FirstOrDefault(s => s.Key == key)
-              ?.Value;
+    public string? Get(string key)
+    {
+        if (!_db.IsInitialized) return null;
+        return _db.Db.Table<SettingsEntity>().FirstOrDefault(s => s.Key == key)?.Value;
+    }
 
     public void Set(string key, string value)
     {
+        if (!_db.IsInitialized) return;
         var existing = _db.Db.Table<SettingsEntity>().FirstOrDefault(s => s.Key == key);
         if (existing is null)
             _db.Db.Insert(new SettingsEntity { Key = key, Value = value });
@@ -26,9 +28,15 @@ public sealed class SqliteSettingsRepository : ISettingsRepository
         }
     }
 
-    public void Remove(string key) =>
+    public void Remove(string key)
+    {
+        if (!_db.IsInitialized) return;
         _db.Db.Delete<SettingsEntity>(key);
+    }
 
-    public bool Contains(string key) =>
-        _db.Db.Table<SettingsEntity>().FirstOrDefault(s => s.Key == key) is not null;
+    public bool Contains(string key)
+    {
+        if (!_db.IsInitialized) return false;
+        return _db.Db.Table<SettingsEntity>().FirstOrDefault(s => s.Key == key) is not null;
+    }
 }

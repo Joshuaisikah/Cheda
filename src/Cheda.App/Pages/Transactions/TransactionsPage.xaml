@@ -2,70 +2,148 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Cheda.App.Pages.Transactions"
     x:Class="Cheda.App.Pages.Transactions.TransactionsPage"
     Title="Transactions"
     BackgroundColor="{StaticResource Background}">
 
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid>
+    <Grid x:Name="ContentLayout" RowDefinitions="Auto,Auto,*" Opacity="0">
 
-        <!-- Search bar -->
-        <SearchBar Grid.Row="0" Placeholder="Search by merchant or category"
-                   Text="{Binding SearchText}" Margin="8,8,8,4"/>
+        <!-- ── Search box ─────────────────────────────────────────────── -->
+        <Border Grid.Row="0"
+                BackgroundColor="{StaticResource Surface}"
+                Stroke="{StaticResource Divider}"
+                StrokeShape="RoundRectangle 12"
+                StrokeThickness="1"
+                Margin="12,10,12,4" Padding="12,0">
+            <Grid ColumnDefinitions="Auto,*">
+                <Label Grid.Column="0" Text="🔍" VerticalOptions="Center"
+                       TextColor="{StaticResource TextHint}" FontSize="16" Margin="0,0,8,0"/>
+                <Entry Grid.Column="1"
+                       Placeholder="Search transactions..."
+                       Text="{Binding SearchText}"
+                       PlaceholderColor="{StaticResource TextHint}"
+                       TextColor="{StaticResource TextPrimary}"
+                       BackgroundColor="Transparent"
+                       HeightRequest="44"/>
+            </Grid>
+        </Border>
 
-        <!-- Filter chips -->
-        <CollectionView Grid.Row="1" ItemsSource="{Binding Filters}" HeightRequest="44"
-                        SelectionMode="Single" Margin="8,0">
+        <!-- ── Filter chips ───────────────────────────────────────────── -->
+        <CollectionView Grid.Row="1" ItemsSource="{Binding Filters}"
+                        HeightRequest="44" Margin="12,0,12,4">
             <CollectionView.ItemsLayout>
-                <LinearItemsLayout Orientation="Horizontal" ItemSpacing="6"/>
+                <LinearItemsLayout Orientation="Horizontal" ItemSpacing="8"/>
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="x:String">
-                    <Border Padding="12,6" StrokeShape="RoundRectangle 20">
+                    <Border Padding="14,7"
+                            StrokeShape="RoundRectangle 20"
+                            BackgroundColor="{StaticResource Surface}"
+                            Stroke="{StaticResource Divider}"
+                            StrokeThickness="1"
+                            Margin="0,4">
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SetFilterCommand}"
-                                                  CommandParameter="{Binding .}"/>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SetFilterCommand}"
+                                CommandParameter="{Binding .}"/>
                         </Border.GestureRecognizers>
-                        <Label Text="{Binding .}" TextColor="{StaticResource Primary}" FontSize="13"/>
+                        <Label Text="{Binding .}" TextColor="{StaticResource TextSecondary}"
+                               FontSize="12" VerticalOptions="Center"/>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Transaction list -->
+        <!-- ── Transaction list ───────────────────────────────────────── -->
         <RefreshView Grid.Row="2" Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
             <CollectionView ItemsSource="{Binding Transactions}">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Border Style="{StaticResource CardStyle}" Margin="8,4">
+                    <DataTemplate x:DataType="local:TxRow">
+                        <Border BackgroundColor="{StaticResource Surface}" Margin="12,4"
+                                Stroke="Transparent" StrokeShape="RoundRectangle 14">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.OpenEditCommand}"
                                     CommandParameter="{Binding .}"/>
                             </Border.GestureRecognizers>
-                            <Grid ColumnDefinitions="*,Auto" Padding="16,12">
-                                <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                    <Label Text="{Binding Counterparty, FallbackValue='—'}"
-                                           FontAttributes="Bold" TextColor="{StaticResource TextPrimary}"/>
-                                    <Label Text="{Binding Category}" FontSize="12"
-                                           TextColor="{StaticResource TextSecondary}"/>
-                                    <Label Text="{Binding Timestamp, StringFormat='{0:dd MMM yyyy  HH:mm}'}"
-                                           FontSize="11" TextColor="{StaticResource TextHint}"/>
+                            <Grid ColumnDefinitions="4,Auto,*,Auto" ColumnSpacing="0">
+
+                                <!-- Left accent bar -->
+                                <BoxView Grid.Column="0"
+                                         BackgroundColor="{Binding AccentColor}"
+                                         CornerRadius="14,0,14,0"/>
+
+                                <!-- Type icon circle -->
+                                <Border Grid.Column="1"
+                                        WidthRequest="40" HeightRequest="40"
+                                        BackgroundColor="{StaticResource SurfaceVariant}"
+                                        Stroke="Transparent" StrokeShape="RoundRectangle 20"
+                                        Margin="12,12,0,12" VerticalOptions="Center">
+                                    <Label Text="{Binding TypeIcon}" FontSize="18"
+                                           HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Border>
+
+                                <!-- Type label + counterparty + date + category chip -->
+                                <VerticalStackLayout Grid.Column="2"
+                                                     Margin="10,12,4,12" Spacing="2"
+                                                     VerticalOptions="Center">
+                                    <Label Text="{Binding TypeLabel}"
+                                           FontAttributes="Bold" FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           MaxLines="1" LineBreakMode="TailTruncation"/>
+                                    <Label Text="{Binding Counterparty}"
+                                           FontSize="12" TextColor="{StaticResource Primary}"
+                                           MaxLines="1" LineBreakMode="TailTruncation"/>
+                                    <HorizontalStackLayout Spacing="6" Margin="0,3,0,0">
+                                        <Label Text="{Binding DateLabel}" FontSize="10"
+                                               TextColor="{StaticResource TextHint}"
+                                               VerticalOptions="Center"/>
+                                        <Border Padding="7,2"
+                                                BackgroundColor="{StaticResource SurfaceVariant}"
+                                                Stroke="Transparent" StrokeShape="RoundRectangle 6">
+                                            <Label Text="{Binding CategoryDisplay}" FontSize="10"
+                                                   TextColor="{StaticResource TextSecondary}"/>
+                                        </Border>
+                                    </HorizontalStackLayout>
                                 </VerticalStackLayout>
-                                <Label Grid.Column="1"
-                                       Text="{Binding Amount, StringFormat='Ksh {0:N0}'}"
-                                       FontAttributes="Bold" TextColor="{StaticResource TextPrimary}"
-                                       VerticalOptions="Center"/>
+
+                                <!-- Amount -->
+                                <Label Grid.Column="3"
+                                       Text="{Binding AmountLabel}"
+                                       FontAttributes="Bold" FontSize="13"
+                                       TextColor="{Binding AmountColor}"
+                                       VerticalOptions="Center"
+                                       Margin="0,0,14,0"/>
+
                             </Grid>
                         </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
                 <CollectionView.EmptyView>
-                    <Label Text="No transactions found." TextColor="{StaticResource TextHint}"
-                           HorizontalOptions="Center" Margin="0,48"/>
+                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
+                                         Spacing="8" Margin="0,64">
+                        <Label Text="No transactions found." FontSize="15"
+                               TextColor="{StaticResource TextSecondary}" HorizontalOptions="Center"/>
+                        <Label Text="Import SMS to get started." FontSize="13"
+                               TextColor="{StaticResource TextHint}" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
                 </CollectionView.EmptyView>
             </CollectionView>
         </RefreshView>
 
+    </Grid>
+
+    <!-- First-load overlay -->
+    <Grid x:Name="LoadingOverlay" BackgroundColor="{StaticResource Background}">
+        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="16">
+            <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}"
+                               WidthRequest="48" HeightRequest="48"/>
+            <Label Text="Loading…" TextColor="{StaticResource TextSecondary}" FontSize="14"
+                   HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+    </Grid>
     </Grid>
 
 </ContentPage>
