@@ -1,28 +1,77 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="456" height="456" fill="#0A0A12"/>
-  <!-- Horizontal grid lines -->
-  <line x1="0" y1="152" x2="456" y2="152" stroke="#00FF9F" stroke-width="0.5" opacity="0.15"/>
-  <line x1="0" y1="304" x2="456" y2="304" stroke="#00FF9F" stroke-width="0.5" opacity="0.15"/>
-  <!-- Vertical grid lines -->
-  <line x1="152" y1="0" x2="152" y2="456" stroke="#00FF9F" stroke-width="0.5" opacity="0.15"/>
-  <line x1="304" y1="0" x2="304" y2="456" stroke="#00FF9F" stroke-width="0.5" opacity="0.15"/>
+  <defs>
+    <filter id="neon" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background: deep black -->
+  <rect width="456" height="456" fill="#000000"/>
+
+  <!-- Subtle grid -->
+  <line x1="0"   y1="114" x2="456" y2="114" stroke="#00FF41" stroke-width="0.4" opacity="0.08"/>
+  <line x1="0"   y1="228" x2="456" y2="228" stroke="#00FF41" stroke-width="0.4" opacity="0.08"/>
+  <line x1="0"   y1="342" x2="456" y2="342" stroke="#00FF41" stroke-width="0.4" opacity="0.08"/>
+  <line x1="114" y1="0"   x2="114" y2="456" stroke="#00FF41" stroke-width="0.4" opacity="0.08"/>
+  <line x1="228" y1="0"   x2="228" y2="456" stroke="#00FF41" stroke-width="0.4" opacity="0.08"/>
+  <line x1="342" y1="0"   x2="342" y2="456" stroke="#00FF41" stroke-width="0.4" opacity="0.08"/>
+
+  <!-- Static matrix rain fragments -->
+  <text x="24"  y="68"  font-family="monospace" font-size="12" fill="#00FF41" opacity="0.55">ア</text>
+  <text x="24"  y="84"  font-family="monospace" font-size="12" fill="#00FF41" opacity="0.38">0</text>
+  <text x="24"  y="100" font-family="monospace" font-size="12" fill="#00FF41" opacity="0.22">1</text>
+  <text x="24"  y="116" font-family="monospace" font-size="12" fill="#00FF41" opacity="0.10">Ψ</text>
+  <text x="415" y="270" font-family="monospace" font-size="12" fill="#00FF41" opacity="0.55">テ</text>
+  <text x="415" y="286" font-family="monospace" font-size="12" fill="#00FF41" opacity="0.35">1</text>
+  <text x="415" y="302" font-family="monospace" font-size="12" fill="#00FF41" opacity="0.18">Ω</text>
+  <text x="58"  y="375" font-family="monospace" font-size="12" fill="#00FF41" opacity="0.45">Φ</text>
+  <text x="58"  y="391" font-family="monospace" font-size="12" fill="#00FF41" opacity="0.25">カ</text>
+  <text x="390" y="110" font-family="monospace" font-size="12" fill="#00FF41" opacity="0.45">0</text>
+  <text x="390" y="126" font-family="monospace" font-size="12" fill="#00FF41" opacity="0.28">イ</text>
+
   <!-- Outer glow ring -->
-  <circle cx="228" cy="228" r="160" stroke="#00FF9F" stroke-width="1" fill="none" opacity="0.2"/>
-  <!-- Main C arc - thick neon stroke -->
-  <path d="M 348 140 A 130 130 0 1 0 348 316" stroke="#00FF9F" stroke-width="24" fill="none" stroke-linecap="round"/>
-  <!-- Circuit trace from top of C -->
-  <line x1="348" y1="140" x2="348" y2="90" stroke="#00E5FF" stroke-width="3"/>
-  <line x1="348" y1="90" x2="400" y2="90" stroke="#00E5FF" stroke-width="3"/>
-  <circle cx="400" cy="90" r="7" fill="#00E5FF"/>
-  <circle cx="348" cy="90" r="5" fill="#00E5FF"/>
-  <!-- Circuit trace from bottom of C -->
-  <line x1="348" y1="316" x2="348" y2="366" stroke="#00E5FF" stroke-width="3"/>
-  <line x1="348" y1="366" x2="400" y2="366" stroke="#00E5FF" stroke-width="3"/>
-  <circle cx="400" cy="366" r="7" fill="#00E5FF"/>
-  <circle cx="348" cy="366" r="5" fill="#00E5FF"/>
-  <!-- Node at C centre-left -->
-  <circle cx="98" cy="228" r="6" fill="#00FF9F" opacity="0.6"/>
-  <!-- Inner dot -->
-  <circle cx="228" cy="228" r="4" fill="#00FF9F" opacity="0.3"/>
+  <circle cx="228" cy="228" r="178" stroke="#00FF41" stroke-width="0.6" fill="none" opacity="0.12"/>
+
+  <!-- Main C arc — neon glow layer -->
+  <path d="M 356 132 A 146 146 0 1 0 356 324"
+        stroke="#00FF41" stroke-width="44" fill="none"
+        stroke-linecap="round" opacity="0.12" filter="url(#neon)"/>
+
+  <!-- Main C arc — solid neon -->
+  <path d="M 356 132 A 146 146 0 1 0 356 324"
+        stroke="#00FF41" stroke-width="26" fill="none"
+        stroke-linecap="round"/>
+
+  <!-- Inner highlight of C -->
+  <path d="M 356 132 A 146 146 0 1 0 356 324"
+        stroke="#AAFFC8" stroke-width="5" fill="none"
+        stroke-linecap="round" opacity="0.55"/>
+
+  <!-- Top circuit trace -->
+  <line x1="356" y1="132" x2="356" y2="78"  stroke="#00E5FF" stroke-width="2.5"/>
+  <line x1="356" y1="78"  x2="420" y2="78"  stroke="#00E5FF" stroke-width="2.5"/>
+  <circle cx="420" cy="78"  r="8" fill="#00E5FF"/>
+  <circle cx="420" cy="78"  r="3" fill="#FFFFFF"/>
+  <circle cx="356" cy="78"  r="4" fill="#00E5FF"/>
+  <circle cx="356" cy="132" r="5" fill="#00FF41" opacity="0.75"/>
+
+  <!-- Bottom circuit trace -->
+  <line x1="356" y1="324" x2="356" y2="378" stroke="#00E5FF" stroke-width="2.5"/>
+  <line x1="356" y1="378" x2="420" y2="378" stroke="#00E5FF" stroke-width="2.5"/>
+  <circle cx="420" cy="378" r="8" fill="#00E5FF"/>
+  <circle cx="420" cy="378" r="3" fill="#FFFFFF"/>
+  <circle cx="356" cy="378" r="4" fill="#00E5FF"/>
+  <circle cx="356" cy="324" r="5" fill="#00FF41" opacity="0.75"/>
+
+  <!-- Left node (open end of C) -->
+  <circle cx="82"  cy="228" r="8"  fill="#00FF41" opacity="0.65"/>
+  <circle cx="82"  cy="228" r="3"  fill="#AAFFC8"/>
+
+  <!-- Centre dot -->
+  <circle cx="228" cy="228" r="5"  fill="#00FF41" opacity="0.25"/>
 </svg>

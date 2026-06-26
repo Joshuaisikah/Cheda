@@ -1,19 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="456" height="456" viewBox="0 0 456 456" xmlns="http://www.w3.org/2000/svg">
 
-  <!-- Logo card — matches in-app loading screens -->
-  <rect x="184" y="154" width="88" height="88" rx="24" fill="#F4A28A"/>
+  <!-- Background matches the csproj Color="#000000" -->
+  <rect width="456" height="456" fill="#000000"/>
 
-  <!-- ₵ glyph -->
-  <text x="228" y="218" font-family="Georgia, serif" font-size="56" font-weight="bold"
-        fill="#FFFFFF" text-anchor="middle">₵</text>
+  <!-- Subtle grid -->
+  <line x1="0"   y1="152" x2="456" y2="152" stroke="#00FF41" stroke-width="0.4" opacity="0.07"/>
+  <line x1="0"   y1="304" x2="456" y2="304" stroke="#00FF41" stroke-width="0.4" opacity="0.07"/>
+  <line x1="152" y1="0"   x2="152" y2="456" stroke="#00FF41" stroke-width="0.4" opacity="0.07"/>
+  <line x1="304" y1="0"   x2="304" y2="456" stroke="#00FF41" stroke-width="0.4" opacity="0.07"/>
+
+  <!-- Corner HUD brackets -->
+  <line x1="10" y1="10" x2="46" y2="10" stroke="#00FF41" stroke-width="2"   opacity="0.5"/>
+  <line x1="10" y1="10" x2="10" y2="46" stroke="#00FF41" stroke-width="2"   opacity="0.5"/>
+  <circle cx="10" cy="10" r="2.5" fill="#00FF41" opacity="0.7"/>
+
+  <line x1="446" y1="10"  x2="410" y2="10"  stroke="#00FF41" stroke-width="2" opacity="0.5"/>
+  <line x1="446" y1="10"  x2="446" y2="46"  stroke="#00FF41" stroke-width="2" opacity="0.5"/>
+  <circle cx="446" cy="10"  r="2.5" fill="#00FF41" opacity="0.7"/>
+
+  <line x1="10"  y1="446" x2="46"  y2="446" stroke="#00FF41" stroke-width="2" opacity="0.5"/>
+  <line x1="10"  y1="446" x2="10"  y2="410" stroke="#00FF41" stroke-width="2" opacity="0.5"/>
+  <circle cx="10"  cy="446" r="2.5" fill="#00FF41" opacity="0.7"/>
+
+  <line x1="446" y1="446" x2="410" y2="446" stroke="#00FF41" stroke-width="2" opacity="0.5"/>
+  <line x1="446" y1="446" x2="446" y2="410" stroke="#00FF41" stroke-width="2" opacity="0.5"/>
+  <circle cx="446" cy="446" r="2.5" fill="#00FF41" opacity="0.7"/>
+
+  <!-- Matrix rain columns (static decoration) -->
+  <text x="22"  y="55"  font-family="monospace" font-size="13" fill="#00FF41" opacity="0.75">ア</text>
+  <text x="22"  y="72"  font-family="monospace" font-size="13" fill="#00FF41" opacity="0.52">イ</text>
+  <text x="22"  y="89"  font-family="monospace" font-size="13" fill="#00FF41" opacity="0.33">0</text>
+  <text x="22"  y="106" font-family="monospace" font-size="13" fill="#00FF41" opacity="0.17">1</text>
+  <text x="22"  y="123" font-family="monospace" font-size="13" fill="#00FF41" opacity="0.07">Ψ</text>
+
+  <text x="420" y="290" font-family="monospace" font-size="13" fill="#00FF41" opacity="0.75">テ</text>
+  <text x="420" y="307" font-family="monospace" font-size="13" fill="#00FF41" opacity="0.52">1</text>
+  <text x="420" y="324" font-family="monospace" font-size="13" fill="#00FF41" opacity="0.33">ア</text>
+  <text x="420" y="341" font-family="monospace" font-size="13" fill="#00FF41" opacity="0.17">Ω</text>
+
+  <text x="50"  y="360" font-family="monospace" font-size="13" fill="#00FF41" opacity="0.65">Φ</text>
+  <text x="50"  y="377" font-family="monospace" font-size="13" fill="#00FF41" opacity="0.42">カ</text>
+  <text x="50"  y="394" font-family="monospace" font-size="13" fill="#00FF41" opacity="0.20">0</text>
+
+  <text x="392" y="88"  font-family="monospace" font-size="13" fill="#00FF41" opacity="0.65">0</text>
+  <text x="392" y="105" font-family="monospace" font-size="13" fill="#00FF41" opacity="0.42">Σ</text>
+  <text x="392" y="122" font-family="monospace" font-size="13" fill="#00FF41" opacity="0.22">β</text>
+
+  <!-- Outer glow ring around logo card -->
+  <circle cx="228" cy="210" r="96" stroke="#00FF41" stroke-width="0.6" fill="none" opacity="0.12"/>
+
+  <!-- Logo card — dark with neon border -->
+  <rect x="174" y="156" width="108" height="108" rx="28"
+        fill="#020F02"/>
+  <rect x="174" y="156" width="108" height="108" rx="28"
+        fill="none" stroke="#00FF41" stroke-width="2.2" opacity="0.85"/>
+
+  <!-- Card corner nodes -->
+  <circle cx="180" cy="162" r="3" fill="#00FF41" opacity="0.6"/>
+  <circle cx="276" cy="162" r="3" fill="#00FF41" opacity="0.6"/>
+  <circle cx="180" cy="258" r="3" fill="#00FF41" opacity="0.6"/>
+  <circle cx="276" cy="258" r="3" fill="#00FF41" opacity="0.6"/>
+
+  <!-- ₵ symbol -->
+  <text x="228" y="228" font-family="Georgia, serif" font-size="62" font-weight="bold"
+        fill="#00FF41" text-anchor="middle">₵</text>
 
   <!-- App name -->
-  <text x="228" y="272" font-family="monospace, sans-serif" font-size="14" font-weight="600"
-        fill="#94A3B8" text-anchor="middle" letter-spacing="7">CHEDA</text>
+  <text x="228" y="293" font-family="monospace, sans-serif" font-size="17" font-weight="700"
+        fill="#00FF41" text-anchor="middle" letter-spacing="9">CHEDA</text>
 
-  <!-- Tagline -->
-  <text x="228" y="292" font-family="sans-serif" font-size="10"
-        fill="#475569" text-anchor="middle" letter-spacing="2">MONEY. CLEAR.</text>
+  <!-- Terminal tagline -->
+  <text x="228" y="312" font-family="monospace, sans-serif" font-size="8"
+        fill="#005C18" text-anchor="middle" letter-spacing="2.5">FINANCIAL.PROTOCOLS.ONLINE</text>
+
+  <!-- Static cursor block after tagline -->
+  <rect x="262" y="318" width="7" height="11" fill="#00FF41" opacity="0.65"/>
+
+  <!-- Progress bar -->
+  <rect x="138" y="366" width="180" height="2.5" fill="#0A1A0A" rx="1.5"/>
+  <rect x="138" y="366" width="96"  height="2.5" fill="#00FF41" rx="1.5" opacity="0.7"/>
+
+  <!-- Small scan line at progress (depth effect) -->
+  <line x1="138" y1="380" x2="234" y2="380" stroke="#00FF41" stroke-width="0.5" opacity="0.3"/>
+
+  <!-- Version stamp -->
+  <text x="228" y="400" font-family="monospace" font-size="8"
+        fill="#003310" text-anchor="middle" letter-spacing="1">v1.0.0 // INITIALIZING</text>
 
 </svg>

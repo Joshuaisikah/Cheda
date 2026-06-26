@@ -26,8 +26,8 @@
     <Color x:Key="TextOnPrimary">#1C0A09</Color>
 
     <!-- PIN pad -->
-    <Color x:Key="PinDotEmpty">#4D2828</Color>
-    <Color x:Key="PinDotFilled">#F4A28A</Color>
+    <Color x:Key="PinDotEmpty">#0D2A0D</Color>
+    <Color x:Key="PinDotFilled">#00FF41</Color>
 
     <!-- Legacy aliases so framework styles don't break -->
     <Color x:Key="Secondary">#3D2020</Color>

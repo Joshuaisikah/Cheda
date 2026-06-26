@@ -1,15 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg">
-  <!-- Foreground layer: badge + ₵ centred on transparent background -->
-  <!-- Android adaptive icon clips to a circle/squircle, badge must be inset -->
+  <!-- Adaptive icon foreground — cyberpunk ₵ on a dark neon-framed badge -->
 
-  <!-- Green badge (squircle) -->
-  <rect x="78" y="78" width="300" height="300" rx="80" fill="#00875A"/>
+  <!-- Dark squircle badge -->
+  <rect x="76" y="76" width="304" height="304" rx="82" fill="#000000"/>
 
-  <!-- Subtle inner highlight — top-left arc for depth -->
-  <rect x="78" y="78" width="300" height="150" rx="80" fill="#00A86B" opacity="0.3"/>
+  <!-- Neon green outer border -->
+  <rect x="76" y="76" width="304" height="304" rx="82"
+        fill="none" stroke="#00FF41" stroke-width="4" opacity="0.85"/>
 
-  <!-- ₵ symbol, white -->
-  <text x="228" y="268" font-family="Georgia, serif" font-size="180" font-weight="bold"
-        fill="#FFFFFF" text-anchor="middle">₵</text>
+  <!-- Inner frame glow -->
+  <rect x="84" y="84" width="288" height="288" rx="78"
+        fill="none" stroke="#00FF41" stroke-width="1" opacity="0.25"/>
+
+  <!-- Corner circuit nodes -->
+  <circle cx="90"  cy="90"  r="5" fill="#00FF41" opacity="0.65"/>
+  <circle cx="366" cy="90"  r="5" fill="#00FF41" opacity="0.65"/>
+  <circle cx="90"  cy="366" r="5" fill="#00FF41" opacity="0.65"/>
+  <circle cx="366" cy="366" r="5" fill="#00FF41" opacity="0.65"/>
+
+  <!-- Short circuit traces from corners -->
+  <line x1="90"  y1="90"  x2="114" y2="90"  stroke="#00FF41" stroke-width="1.5" opacity="0.45"/>
+  <line x1="90"  y1="90"  x2="90"  y2="114" stroke="#00FF41" stroke-width="1.5" opacity="0.45"/>
+  <line x1="366" y1="90"  x2="342" y2="90"  stroke="#00FF41" stroke-width="1.5" opacity="0.45"/>
+  <line x1="366" y1="90"  x2="366" y2="114" stroke="#00FF41" stroke-width="1.5" opacity="0.45"/>
+  <line x1="90"  y1="366" x2="114" y2="366" stroke="#00FF41" stroke-width="1.5" opacity="0.45"/>
+  <line x1="90"  y1="366" x2="90"  y2="342" stroke="#00FF41" stroke-width="1.5" opacity="0.45"/>
+  <line x1="366" y1="366" x2="342" y2="366" stroke="#00FF41" stroke-width="1.5" opacity="0.45"/>
+  <line x1="366" y1="366" x2="366" y2="342" stroke="#00FF41" stroke-width="1.5" opacity="0.45"/>
+
+  <!-- ₵ glyph — primary neon layer -->
+  <text x="228" y="278" font-family="Georgia, serif" font-size="186" font-weight="bold"
+        fill="#00FF41" text-anchor="middle" opacity="0.92">₵</text>
+
+  <!-- ₵ glyph — inner white shimmer -->
+  <text x="228" y="278" font-family="Georgia, serif" font-size="186" font-weight="bold"
+        fill="#FFFFFF" text-anchor="middle" opacity="0.10">₵</text>
 </svg>

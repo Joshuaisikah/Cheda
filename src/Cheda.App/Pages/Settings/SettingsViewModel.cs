@@ -28,7 +28,6 @@ public partial class SettingsViewModel : ViewModelBase
     // Preferences
     [ObservableProperty] private bool _biometricEnabled;
     [ObservableProperty] private int  _lockDelayMinutes;
-    [ObservableProperty] private bool _communityLearning;
 
     public string LockAfterLabel => LockDelayMinutes == 0
         ? "Lock after: Immediately"
@@ -61,21 +60,38 @@ public partial class SettingsViewModel : ViewModelBase
         _keyProvider = keyProvider;
         _bioKeyStore = bioKeyStore;
 
-        // Default biometric ON when the user has never explicitly set it.
-        // The lock screen still checks hardware availability independently,
-        // so this is safe even on devices without enrolled biometrics.
+        // Settings are read in Reload(), called from OnAppearing after the DB is unlocked.
+        // The constructor runs during AppShell pre-warming (before auth), so the encrypted
+        // DB isn't open yet — reading here would always return null and reset the toggle.
+    }
+
+    // Called from SettingsPage.OnAppearing, after the DB is unlocked post-auth.
+    public void Reload()
+    {
         var bioStr = _settings.Get("BiometricEnabled");
-        if (bioStr is null)
+        bool newBio = bioStr == "true";
+
+        if (_biometricEnabled != newBio)
         {
-            _biometricEnabled = true;
-            _settings.Set("BiometricEnabled", "true");
+            _biometricEnabled = newBio;
+            OnPropertyChanged(nameof(BiometricEnabled));
         }
-        else
+
+        int newDelay = int.TryParse(_settings.Get("LockDelayMinutes"), out var d) ? d : 0;
+        if (_lockDelayMinutes != newDelay)
         {
-            _biometricEnabled = bioStr == "true";
+            _lockDelayMinutes = newDelay;
+            OnPropertyChanged(nameof(LockDelayMinutes));
+            OnPropertyChanged(nameof(LockAfterLabel));
+            OnPropertyChanged(nameof(LockDelay0Bg));
+            OnPropertyChanged(nameof(LockDelay1Bg));
+            OnPropertyChanged(nameof(LockDelay5Bg));
+            OnPropertyChanged(nameof(LockDelay15Bg));
+            OnPropertyChanged(nameof(LockDelay0Fg));
+            OnPropertyChanged(nameof(LockDelay1Fg));
+            OnPropertyChanged(nameof(LockDelay5Fg));
+            OnPropertyChanged(nameof(LockDelay15Fg));
         }
-        _lockDelayMinutes  = int.TryParse(_settings.Get("LockDelayMinutes"), out var d) ? d : 0;
-        _communityLearning = _settings.Get("CommunityLearning") == "true";
     }
 
     partial void OnBiometricEnabledChanged(bool value)
@@ -109,9 +125,6 @@ public partial class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(LockDelay5Fg));
         OnPropertyChanged(nameof(LockDelay15Fg));
     }
-
-    partial void OnCommunityLearningChanged(bool value) =>
-        _settings.Set("CommunityLearning", value ? "true" : "false");
 
     [RelayCommand]
     private void SetLockDelay(string param)
@@ -237,19 +250,6 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task RateAppAsync()
-    {
-        try
-        {
-            await Launcher.OpenAsync("market://details?id=com.cheda.app");
-        }
-        catch
-        {
-            await Launcher.OpenAsync("https://play.google.com/store");
-        }
-    }
-
-    [RelayCommand]
     private async Task InviteFriendAsync()
     {
         await Share.RequestAsync(new ShareTextRequest
@@ -257,20 +257,6 @@ public partial class SettingsViewModel : ViewModelBase
             Title = "Cheda – M-Pesa Tracker",
             Text  = "I use Cheda to track my M-Pesa spending. It's free and works offline. Try it!",
         });
-    }
-
-    [RelayCommand]
-    private async Task DataHealthAsync()
-    {
-        await Application.Current!.Windows[0].Page!
-            .DisplayAlert("Data Health", "Your transaction data looks healthy. No issues detected.", "OK");
-    }
-
-    [RelayCommand]
-    private async Task DonateAsync()
-    {
-        await Application.Current!.Windows[0].Page!
-            .DisplayAlert("Support Cheda", "Thank you! Donation support coming soon.", "OK");
     }
 
     [RelayCommand]

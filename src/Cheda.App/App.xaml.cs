@@ -37,6 +37,11 @@ public partial class App : Application
         // App is always dark — no theme toggle.
         UserAppTheme = AppTheme.Dark;
 
+        // Open the DB with the fallback key in the background so settings (e.g.
+        // BiometricEnabled) are readable by the lock screen before auth completes.
+        // InitializeAsync is idempotent — if auth runs first it becomes a no-op.
+        _ = Task.Run(() => _services.GetRequiredService<Storage.DatabaseService>().InitializeAsync());
+
         // Pre-warm AppShell while the lock screen is showing so that window.Page = shell
         // in DismissModal is instant after auth (first-time construction costs ~700ms).
         _ = _services.GetRequiredService<AppShell>();
@@ -60,39 +65,44 @@ public partial class App : Application
         _backgroundedAt = DateTimeOffset.UtcNow;
     }
 
-    protected override async void OnResume()
+    protected override void OnResume()
     {
         base.OnResume();
 
-        // Silently scan for SMS that arrived while the app was in the background.
-        // Runs in the background while the lock screen shows — data is ready by unlock.
-        _ = AutoScanAsync();
+        // Defer until the Activity's onResume transition is completely done.
+        // PushModalAsync / PopAsync during the transition cause Fragment state
+        // exceptions on Android. We swap Window.Page directly instead, which
+        // doesn't touch the Fragment manager at all.
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(350), () =>
+        {
+            ResumeAndLockIfNeeded();
+        });
+    }
 
+    private void ResumeAndLockIfNeeded()
+    {
         var lockService = _services.GetRequiredService<IAppLockService>();
         if (!lockService.IsSetUp) return;
 
-        // Only re-lock when the Shell is the active page (user already authenticated once).
+        // Only lock when the Shell is the active page.
         if (Windows[0].Page is not AppShell) return;
 
-        var nav = Windows[0].Page.Navigation;
-        if (nav.ModalStack.Count > 0) return; // lock modal already showing
+        // Don't lock if the lock modal is already visible.
+        if (Windows[0].Page.Navigation.ModalStack.Count > 0) return;
 
-        // Respect the configured lock delay — don't lock if background time is within grace period.
-        var settings      = _services.GetRequiredService<ISettingsRepository>();
-        var delayMinutes  = int.TryParse(settings.Get("LockDelayMinutes"), out var d) ? d : 0;
-        var elapsed       = DateTimeOffset.UtcNow - _backgroundedAt;
+        // Read lock delay synchronously — already on main thread, call is fast.
+        var settings     = _services.GetRequiredService<ISettingsRepository>();
+        int delayMinutes = int.TryParse(settings.Get("LockDelayMinutes"), out var d) ? d : 0;
+
+        var elapsed = DateTimeOffset.UtcNow - _backgroundedAt;
         if (delayMinutes > 0 && elapsed.TotalMinutes < delayMinutes) return;
 
         lockService.Lock();
+
+        // Direct Window.Page swap — zero Fragment transactions, safe at any lifecycle stage.
         Windows[0].Page.Opacity = 0;
-
-        // Pop any open sub-pages (e.g. TransactionEditPage) before locking so that
-        // after unlock the user lands on the tab root, not a stale detail screen.
-        while (nav.NavigationStack.Count > 0)
-            await nav.PopAsync(animated: false);
-
         var lockPage = _services.GetRequiredService<LockPage>();
-        await Windows[0].Page.Navigation.PushModalAsync(lockPage, animated: false);
+        Windows[0].Page = lockPage;
     }
 
     private async Task AutoScanAsync()

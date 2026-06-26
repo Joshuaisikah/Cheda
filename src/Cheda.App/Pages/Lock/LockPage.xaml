@@ -4,224 +4,221 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Cheda.App.Pages.Lock.LockPage"
     NavigationPage.HasNavigationBar="False"
-    BackgroundColor="{StaticResource Background}">
+    BackgroundColor="#000000">
 
-    <Grid BackgroundColor="{StaticResource Background}">
+    <ContentPage.Resources>
+        <!-- Matrix-themed numpad buttons -->
+        <Style x:Key="MatrixNumPad" TargetType="Button">
+            <Setter Property="BackgroundColor"  Value="#0B1A0B"/>
+            <Setter Property="TextColor"        Value="#00FF41"/>
+            <Setter Property="FontSize"         Value="22"/>
+            <Setter Property="FontAttributes"   Value="Bold"/>
+            <Setter Property="CornerRadius"     Value="40"/>
+            <Setter Property="HeightRequest"    Value="76"/>
+            <Setter Property="WidthRequest"     Value="76"/>
+            <Setter Property="BorderColor"      Value="#1A4A1A"/>
+            <Setter Property="BorderWidth"      Value="1"/>
+        </Style>
+    </ContentPage.Resources>
 
-        <!-- ══ WAITING / LOADING STATE — shown while biometric auto-fires ══ -->
-        <!-- Tapping anywhere retries biometric in case MIUI left the guard stuck -->
-        <Grid IsVisible="{Binding IsWaiting}" BackgroundColor="{StaticResource Background}">
-            <Grid.GestureRecognizers>
-                <TapGestureRecognizer Command="{Binding SwitchToBiometricCommand}"/>
-            </Grid.GestureRecognizers>
-            <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="0">
+    <Grid BackgroundColor="#000000">
 
-                <!-- Logo card -->
-                <Border WidthRequest="88" HeightRequest="88"
-                        BackgroundColor="{StaticResource Primary}"
-                        StrokeShape="RoundRectangle 24" Stroke="Transparent"
-                        HorizontalOptions="Center">
-                    <Label Text="₵" FontSize="52" FontAttributes="Bold"
-                           TextColor="White"
-                           HorizontalOptions="Center" VerticalOptions="Center"/>
-                </Border>
+        <!-- Layer 0: Matrix rain background (full-screen, non-interactive) -->
+        <GraphicsView x:Name="MatrixView" InputTransparent="True"/>
 
-                <Label Text="CHEDA" FontSize="13" FontAttributes="Bold"
-                       CharacterSpacing="5"
-                       TextColor="{StaticResource TextSecondary}"
-                       HorizontalOptions="Center" Margin="0,14,0,0"/>
+        <!-- Layer 1: Content overlaid on rain -->
+        <Grid RowDefinitions="Auto,*,Auto" Padding="28,56,28,40">
 
-                <Label Text="Money. Clear." FontSize="12"
-                       TextColor="{StaticResource TextSecondary}"
-                       HorizontalOptions="Center" Margin="0,4,0,48"
-                       Opacity="0.5"/>
+            <!-- ══ Row 0: Header — always visible (matrix text + logo) ══ -->
+            <VerticalStackLayout Grid.Row="0" Spacing="0">
 
-                <!-- Spinner -->
-                <Grid WidthRequest="56" HeightRequest="56" HorizontalOptions="Center">
-                    <ActivityIndicator IsRunning="True"
-                                       Color="{StaticResource Primary}"
-                                       WidthRequest="56" HeightRequest="56"
-                                       HorizontalOptions="Center" VerticalOptions="Center"/>
-                    <Label x:Name="LockCurrencyLabel"
-                           Text="₵" FontSize="22" FontAttributes="Bold"
-                           TextColor="{StaticResource Primary}"
-                           HorizontalOptions="Center" VerticalOptions="Center"/>
-                </Grid>
+                <!-- Terminal typewriter lines -->
+                <Label x:Name="MatrixLine1"
+                       FontFamily="monospace" FontSize="13"
+                       TextColor="#00FF41" Opacity="0" Margin="0,0,0,3"
+                       CharacterSpacing="0.3"/>
+                <Label x:Name="MatrixLine2"
+                       FontFamily="monospace" FontSize="13"
+                       TextColor="#00CC33" Opacity="0" Margin="0,0,0,3"
+                       CharacterSpacing="0.3"/>
+                <Label x:Name="MatrixLine3"
+                       FontFamily="monospace" FontSize="13"
+                       TextColor="#00882A" Opacity="0" Margin="0,0,0,18"
+                       CharacterSpacing="0.3"/>
 
-                <Label Text="Tap to unlock"
-                       FontSize="14" TextColor="{StaticResource TextSecondary}"
-                       HorizontalOptions="Center" Margin="0,16,0,0"/>
+                <!-- Logo row -->
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="14">
 
-                <Label Text="Use PIN instead"
-                       FontSize="15" FontAttributes="Bold"
-                       TextColor="{StaticResource Primary}"
-                       HorizontalOptions="Center" Margin="0,20,0,0">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding SwitchToPinCommand}"/>
-                    </Label.GestureRecognizers>
-                </Label>
+                    <!-- Neon ₵ card -->
+                    <Border WidthRequest="60" HeightRequest="60"
+                            BackgroundColor="#050F05"
+                            StrokeShape="RoundRectangle 16"
+                            Stroke="#00FF41" StrokeThickness="1.5">
+                        <Label Text="₵" FontSize="32" FontAttributes="Bold"
+                               TextColor="#00FF41"
+                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                    </Border>
+
+                    <!-- App name / tagline -->
+                    <VerticalStackLayout VerticalOptions="Center" Spacing="3">
+                        <Label Text="CHEDA"
+                               FontSize="20" FontAttributes="Bold"
+                               CharacterSpacing="6"
+                               TextColor="#00FF41"/>
+                        <Label Text="FINANCIAL.SYSTEM.v1.0"
+                               FontSize="8" CharacterSpacing="1.5"
+                               TextColor="#1A5C1A"/>
+                    </VerticalStackLayout>
+
+                </HorizontalStackLayout>
+
+                <!-- Circuit-trace divider -->
+                <BoxView HeightRequest="1" Margin="0,14,0,0"
+                         BackgroundColor="#00FF41" Opacity="0.18"/>
 
             </VerticalStackLayout>
-        </Grid>
 
-        <!-- ══ FINGERPRINT RETRY SCREEN — only shown after a failed attempt ══ -->
-        <Grid IsVisible="{Binding ShowingFingerprintRetry}"
-              RowDefinitions="Auto,*,Auto,Auto" Padding="32,56,32,48">
+            <!-- ══ Row 1: Spacer ══ -->
 
-            <!-- Row 0: Brand mark (top) -->
-            <VerticalStackLayout Grid.Row="0" Spacing="6" HorizontalOptions="Center">
-                <Border WidthRequest="64" HeightRequest="64"
-                        BackgroundColor="{StaticResource Primary}"
-                        StrokeShape="RoundRectangle 18" Stroke="Transparent">
-                    <Label Text="₵" FontSize="32" FontAttributes="Bold"
-                           TextColor="White"
-                           HorizontalOptions="Center" VerticalOptions="Center"/>
-                </Border>
-                <Label Text="CHEDA" FontSize="11" FontAttributes="Bold"
-                       CharacterSpacing="4"
-                       TextColor="{StaticResource TextSecondary}"
-                       HorizontalOptions="Center"/>
-            </VerticalStackLayout>
+            <!-- ══ Row 2: State-specific lock UI ══ -->
+            <Grid Grid.Row="2">
 
-            <!-- Row 1: spacer -->
+                <!-- ── WAITING: biometric auto-fires ── -->
+                <VerticalStackLayout IsVisible="{Binding IsWaiting}"
+                                     Spacing="16" HorizontalOptions="Center">
+                    <VerticalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding SwitchToBiometricCommand}"/>
+                    </VerticalStackLayout.GestureRecognizers>
 
-            <!-- Row 2: Fingerprint sensor area (bottom-center) -->
-            <VerticalStackLayout Grid.Row="2" Spacing="20"
-                                  HorizontalOptions="Center" VerticalOptions="End">
+                    <!-- Spinner with pulsing ₵ -->
+                    <Grid WidthRequest="64" HeightRequest="64" HorizontalOptions="Center">
+                        <ActivityIndicator IsRunning="True" Color="#00FF41"
+                                           WidthRequest="64" HeightRequest="64"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center"/>
+                        <Label x:Name="LockCurrencyLabel"
+                               Text="₵" FontSize="24" FontAttributes="Bold"
+                               TextColor="#00FF41"
+                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                    </Grid>
 
-                <!-- Fingerprint sensor circle — tap to trigger / retry biometric -->
-                <VerticalStackLayout Spacing="18" HorizontalOptions="Center">
+                    <Label Text="SCANNING BIOMETRICS..."
+                           FontFamily="monospace" FontSize="10"
+                           TextColor="#1A6A1A" CharacterSpacing="2"
+                           HorizontalOptions="Center"/>
 
-                    <!-- Outer glow ring + sensor circle -->
-                    <Grid HorizontalOptions="Center" WidthRequest="144" HeightRequest="144">
-                        <!-- Outer ring (subtle glow) -->
-                        <Ellipse WidthRequest="144" HeightRequest="144"
-                                 Stroke="{StaticResource Primary}" StrokeThickness="1"
-                                 Fill="Transparent" Opacity="0.3"
-                                 HorizontalOptions="Center" VerticalOptions="Center"/>
-                        <!-- Sensor circle -->
-                        <Border WidthRequest="112" HeightRequest="112"
-                                BackgroundColor="{StaticResource Surface}"
-                                Stroke="{StaticResource Primary}" StrokeThickness="2.5"
-                                StrokeShape="RoundRectangle 56"
+                    <Label Text="> USE PIN INSTEAD _"
+                           FontFamily="monospace" FontSize="14" FontAttributes="Bold"
+                           TextColor="#00FF41" HorizontalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SwitchToPinCommand}"/>
+                        </Label.GestureRecognizers>
+                    </Label>
+                </VerticalStackLayout>
+
+                <!-- ── FINGERPRINT RETRY ── -->
+                <VerticalStackLayout IsVisible="{Binding ShowingFingerprintRetry}"
+                                     Spacing="18" HorizontalOptions="Center">
+
+                    <!-- Neon fingerprint ring -->
+                    <Grid HorizontalOptions="Center" WidthRequest="120" HeightRequest="120">
+                        <Ellipse WidthRequest="120" HeightRequest="120"
+                                 Stroke="#00FF41" StrokeThickness="1"
+                                 Fill="Transparent" Opacity="0.25"/>
+                        <Border WidthRequest="92" HeightRequest="92"
+                                BackgroundColor="#050F05"
+                                Stroke="#00FF41" StrokeThickness="2"
+                                StrokeShape="RoundRectangle 46"
                                 HorizontalOptions="Center" VerticalOptions="Center">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding SwitchToBiometricCommand}"/>
                             </Border.GestureRecognizers>
                             <Image Source="fingerprint.svg"
-                                   WidthRequest="56" HeightRequest="56"
+                                   WidthRequest="48" HeightRequest="48"
                                    HorizontalOptions="Center" VerticalOptions="Center"/>
                         </Border>
                     </Grid>
 
-                    <Label Text="Place your finger to unlock"
-                           FontSize="15" TextColor="{StaticResource TextPrimary}"
-                           HorizontalOptions="Center" FontAttributes="Bold"/>
+                    <Label Text="BIOMETRIC AUTH REQUIRED"
+                           FontFamily="monospace" FontSize="11" FontAttributes="Bold"
+                           TextColor="#00FF41" HorizontalOptions="Center"
+                           CharacterSpacing="1.5"/>
 
-                    <!-- Tap-to-retry or error message -->
                     <Label Text="{Binding LockMessage}"
-                           FontSize="13" TextColor="{StaticResource Danger}"
-                           HorizontalOptions="Center"
+                           FontFamily="monospace" FontSize="12"
+                           TextColor="#FF4141" HorizontalOptions="Center"
                            IsVisible="{Binding LockMessage, Converter={StaticResource NullToBoolConverter}}"/>
+
+                    <Label Text="> USE PIN INSTEAD _"
+                           FontFamily="monospace" FontSize="14" FontAttributes="Bold"
+                           TextColor="#00FF41" HorizontalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SwitchToPinCommand}"/>
+                        </Label.GestureRecognizers>
+                    </Label>
                 </VerticalStackLayout>
 
-            </VerticalStackLayout>
+                <!-- ── PIN PAD ── -->
+                <VerticalStackLayout IsVisible="{Binding ShowingPinPad}" Spacing="18">
 
-            <!-- Row 3: "Use PIN instead" link -->
-            <Label Grid.Row="3"
-                   Text="Use PIN instead"
-                   FontSize="15" FontAttributes="Bold"
-                   TextColor="{StaticResource Primary}"
-                   HorizontalOptions="Center"
-                   Margin="0,24,0,0">
-                <Label.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding SwitchToPinCommand}"/>
-                </Label.GestureRecognizers>
-            </Label>
+                    <!-- PIN indicator row -->
+                    <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Label Text="ENTER ACCESS CODE"
+                               FontFamily="monospace" FontSize="9"
+                               TextColor="#1A6A1A" CharacterSpacing="2.5"
+                               HorizontalOptions="Center"/>
+
+                        <HorizontalStackLayout Spacing="16" HorizontalOptions="Center">
+                            <Ellipse WidthRequest="14" HeightRequest="14"
+                                     Fill="{Binding PinDisplay, Converter={StaticResource PinDotConverter}, ConverterParameter=1}"/>
+                            <Ellipse WidthRequest="14" HeightRequest="14"
+                                     Fill="{Binding PinDisplay, Converter={StaticResource PinDotConverter}, ConverterParameter=2}"/>
+                            <Ellipse WidthRequest="14" HeightRequest="14"
+                                     Fill="{Binding PinDisplay, Converter={StaticResource PinDotConverter}, ConverterParameter=3}"/>
+                            <Ellipse WidthRequest="14" HeightRequest="14"
+                                     Fill="{Binding PinDisplay, Converter={StaticResource PinDotConverter}, ConverterParameter=4}"/>
+                        </HorizontalStackLayout>
+
+                        <Label Text="{Binding LockMessage}"
+                               FontFamily="monospace" FontSize="12"
+                               TextColor="#FF4141" HorizontalOptions="Center"
+                               IsVisible="{Binding LockMessage, Converter={StaticResource NullToBoolConverter}}"/>
+                    </VerticalStackLayout>
+
+                    <!-- Numpad -->
+                    <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto"
+                          RowSpacing="10" ColumnSpacing="10"
+                          HorizontalOptions="Center" WidthRequest="268">
+
+                        <Button Grid.Row="0" Grid.Column="0" Text="1" Style="{StaticResource MatrixNumPad}" Command="{Binding PressDigitCommand}" CommandParameter="1"/>
+                        <Button Grid.Row="0" Grid.Column="1" Text="2" Style="{StaticResource MatrixNumPad}" Command="{Binding PressDigitCommand}" CommandParameter="2"/>
+                        <Button Grid.Row="0" Grid.Column="2" Text="3" Style="{StaticResource MatrixNumPad}" Command="{Binding PressDigitCommand}" CommandParameter="3"/>
+
+                        <Button Grid.Row="1" Grid.Column="0" Text="4" Style="{StaticResource MatrixNumPad}" Command="{Binding PressDigitCommand}" CommandParameter="4"/>
+                        <Button Grid.Row="1" Grid.Column="1" Text="5" Style="{StaticResource MatrixNumPad}" Command="{Binding PressDigitCommand}" CommandParameter="5"/>
+                        <Button Grid.Row="1" Grid.Column="2" Text="6" Style="{StaticResource MatrixNumPad}" Command="{Binding PressDigitCommand}" CommandParameter="6"/>
+
+                        <Button Grid.Row="2" Grid.Column="0" Text="7" Style="{StaticResource MatrixNumPad}" Command="{Binding PressDigitCommand}" CommandParameter="7"/>
+                        <Button Grid.Row="2" Grid.Column="1" Text="8" Style="{StaticResource MatrixNumPad}" Command="{Binding PressDigitCommand}" CommandParameter="8"/>
+                        <Button Grid.Row="2" Grid.Column="2" Text="9" Style="{StaticResource MatrixNumPad}" Command="{Binding PressDigitCommand}" CommandParameter="9"/>
+
+                        <!-- Bottom row: bio (if on) | 0 | backspace -->
+                        <Button Grid.Row="3" Grid.Column="0" Text="⬡"
+                                Style="{StaticResource MatrixNumPad}" FontSize="22"
+                                IsVisible="{Binding BiometricAvailable}"
+                                Command="{Binding SwitchToBiometricCommand}"/>
+                        <BoxView Grid.Row="3" Grid.Column="0" BackgroundColor="Transparent"
+                                 IsVisible="{Binding BiometricAvailable, Converter={StaticResource InvertBoolConverter}}"/>
+                        <Button Grid.Row="3" Grid.Column="1" Text="0" Style="{StaticResource MatrixNumPad}" Command="{Binding PressDigitCommand}" CommandParameter="0"/>
+                        <Button Grid.Row="3" Grid.Column="2" Text="⌫" Style="{StaticResource MatrixNumPad}" Command="{Binding BackspaceCommand}"/>
+
+                    </Grid>
+
+                </VerticalStackLayout>
+
+            </Grid>
 
         </Grid>
-
-        <!-- ══ PIN PAD SCREEN ══════════════════════════════════════════ -->
-        <Grid IsVisible="{Binding ShowingPinPad}"
-              RowDefinitions="*,Auto" Padding="32,56,32,40">
-
-            <!-- Logo + PIN dots -->
-            <VerticalStackLayout Grid.Row="0" VerticalOptions="Center" Spacing="32">
-
-                <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
-                    <Border WidthRequest="64" HeightRequest="64"
-                            BackgroundColor="{StaticResource Primary}"
-                            StrokeShape="RoundRectangle 18" Stroke="Transparent">
-                        <Label Text="₵" FontSize="32" FontAttributes="Bold"
-                               TextColor="White"
-                               HorizontalOptions="Center" VerticalOptions="Center"/>
-                    </Border>
-                    <Label Text="CHEDA" FontSize="13" FontAttributes="Bold"
-                           CharacterSpacing="4"
-                           TextColor="{StaticResource TextSecondary}"
-                           HorizontalOptions="Center"/>
-                </VerticalStackLayout>
-
-                <VerticalStackLayout Spacing="14" HorizontalOptions="Center">
-                    <Label Text="Enter your PIN" FontSize="16"
-                           TextColor="{StaticResource TextSecondary}"
-                           HorizontalOptions="Center"/>
-                    <HorizontalStackLayout Spacing="18" HorizontalOptions="Center">
-                        <Ellipse WidthRequest="14" HeightRequest="14"
-                                 Fill="{Binding PinDisplay, Converter={StaticResource PinDotConverter}, ConverterParameter=1}"/>
-                        <Ellipse WidthRequest="14" HeightRequest="14"
-                                 Fill="{Binding PinDisplay, Converter={StaticResource PinDotConverter}, ConverterParameter=2}"/>
-                        <Ellipse WidthRequest="14" HeightRequest="14"
-                                 Fill="{Binding PinDisplay, Converter={StaticResource PinDotConverter}, ConverterParameter=3}"/>
-                        <Ellipse WidthRequest="14" HeightRequest="14"
-                                 Fill="{Binding PinDisplay, Converter={StaticResource PinDotConverter}, ConverterParameter=4}"/>
-                    </HorizontalStackLayout>
-                    <Label Text="{Binding LockMessage}"
-                           TextColor="{StaticResource Danger}"
-                           FontSize="13"
-                           HorizontalOptions="Center"
-                           IsVisible="{Binding LockMessage, Converter={StaticResource NullToBoolConverter}}"/>
-                </VerticalStackLayout>
-
-            </VerticalStackLayout>
-
-            <!-- Numpad + optional fingerprint shortcut -->
-            <VerticalStackLayout Grid.Row="1" Spacing="16">
-
-                <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto"
-                      RowSpacing="12" ColumnSpacing="12"
-                      HorizontalOptions="Center" WidthRequest="280">
-
-                    <Button Grid.Row="0" Grid.Column="0" Text="1" Style="{StaticResource NumPadButtonStyle}" Command="{Binding PressDigitCommand}" CommandParameter="1"/>
-                    <Button Grid.Row="0" Grid.Column="1" Text="2" Style="{StaticResource NumPadButtonStyle}" Command="{Binding PressDigitCommand}" CommandParameter="2"/>
-                    <Button Grid.Row="0" Grid.Column="2" Text="3" Style="{StaticResource NumPadButtonStyle}" Command="{Binding PressDigitCommand}" CommandParameter="3"/>
-
-                    <Button Grid.Row="1" Grid.Column="0" Text="4" Style="{StaticResource NumPadButtonStyle}" Command="{Binding PressDigitCommand}" CommandParameter="4"/>
-                    <Button Grid.Row="1" Grid.Column="1" Text="5" Style="{StaticResource NumPadButtonStyle}" Command="{Binding PressDigitCommand}" CommandParameter="5"/>
-                    <Button Grid.Row="1" Grid.Column="2" Text="6" Style="{StaticResource NumPadButtonStyle}" Command="{Binding PressDigitCommand}" CommandParameter="6"/>
-
-                    <Button Grid.Row="2" Grid.Column="0" Text="7" Style="{StaticResource NumPadButtonStyle}" Command="{Binding PressDigitCommand}" CommandParameter="7"/>
-                    <Button Grid.Row="2" Grid.Column="1" Text="8" Style="{StaticResource NumPadButtonStyle}" Command="{Binding PressDigitCommand}" CommandParameter="8"/>
-                    <Button Grid.Row="2" Grid.Column="2" Text="9" Style="{StaticResource NumPadButtonStyle}" Command="{Binding PressDigitCommand}" CommandParameter="9"/>
-
-                    <!-- Bottom row: fingerprint (if available) | 0 | backspace -->
-                    <Button Grid.Row="3" Grid.Column="0" Text="🔏"
-                            Style="{StaticResource NumPadButtonStyle}"
-                            FontSize="24"
-                            IsVisible="{Binding BiometricAvailable}"
-                            Command="{Binding SwitchToBiometricCommand}"/>
-                    <BoxView Grid.Row="3" Grid.Column="0"
-                             BackgroundColor="Transparent"
-                             IsVisible="{Binding BiometricAvailable, Converter={StaticResource InvertBoolConverter}}"/>
-                    <Button Grid.Row="3" Grid.Column="1" Text="0" Style="{StaticResource NumPadButtonStyle}" Command="{Binding PressDigitCommand}" CommandParameter="0"/>
-                    <Button Grid.Row="3" Grid.Column="2" Text="⌫" Style="{StaticResource NumPadButtonStyle}" Command="{Binding BackspaceCommand}"/>
-
-                </Grid>
-
-            </VerticalStackLayout>
-
-        </Grid>
-
     </Grid>
 
 </ContentPage>

@@ -22,8 +22,7 @@
                    TextColor="{StaticResource TextSecondary}"
                    Margin="4,0,0,10"/>
 
-            <!-- Biometric / Lock -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
                 <VerticalStackLayout Padding="16" Spacing="12">
                     <Grid ColumnDefinitions="*,Auto">
                         <VerticalStackLayout Grid.Column="0" Spacing="2">
@@ -46,8 +45,7 @@
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding SetLockDelayCommand}" CommandParameter="0"/>
                             </Border.GestureRecognizers>
-                            <Label Text="Immediately" FontSize="12"
-                                   TextColor="{Binding LockDelay0Fg}"/>
+                            <Label Text="Immediately" FontSize="12" TextColor="{Binding LockDelay0Fg}"/>
                         </Border>
                         <Border Padding="12,7" StrokeShape="RoundRectangle 10"
                                 BackgroundColor="{Binding LockDelay1Bg}"
@@ -55,8 +53,7 @@
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding SetLockDelayCommand}" CommandParameter="1"/>
                             </Border.GestureRecognizers>
-                            <Label Text="1 minute" FontSize="12"
-                                   TextColor="{Binding LockDelay1Fg}"/>
+                            <Label Text="1 minute" FontSize="12" TextColor="{Binding LockDelay1Fg}"/>
                         </Border>
                         <Border Padding="12,7" StrokeShape="RoundRectangle 10"
                                 BackgroundColor="{Binding LockDelay5Bg}"
@@ -64,8 +61,7 @@
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding SetLockDelayCommand}" CommandParameter="5"/>
                             </Border.GestureRecognizers>
-                            <Label Text="5 minutes" FontSize="12"
-                                   TextColor="{Binding LockDelay5Fg}"/>
+                            <Label Text="5 minutes" FontSize="12" TextColor="{Binding LockDelay5Fg}"/>
                         </Border>
                         <Border Padding="12,7" StrokeShape="RoundRectangle 10"
                                 BackgroundColor="{Binding LockDelay15Bg}"
@@ -73,68 +69,10 @@
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding SetLockDelayCommand}" CommandParameter="15"/>
                             </Border.GestureRecognizers>
-                            <Label Text="15 minutes" FontSize="12"
-                                   TextColor="{Binding LockDelay15Fg}"/>
+                            <Label Text="15 minutes" FontSize="12" TextColor="{Binding LockDelay15Fg}"/>
                         </Border>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
-            </Border>
-
-            <!-- ── PERMISSIONS ─────────────────────────────────────── -->
-            <Label Text="PERMISSIONS" FontSize="11" FontAttributes="Bold"
-                   CharacterSpacing="1.5"
-                   TextColor="{StaticResource TextSecondary}"
-                   Margin="4,4,0,10"/>
-
-            <!-- SMS Access -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8">
-                <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
-                    <Border Grid.Column="0" WidthRequest="44" HeightRequest="44"
-                            BackgroundColor="{StaticResource PrimaryLight}"
-                            StrokeShape="RoundRectangle 22" Stroke="Transparent">
-                        <Label Text="✉️" FontSize="20"
-                               HorizontalOptions="Center" VerticalOptions="Center"/>
-                    </Border>
-                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                        <Label Text="SMS Access" FontAttributes="Bold" FontSize="14"
-                               TextColor="{StaticResource TextPrimary}"/>
-                        <Label Text="Reads M-Pesa messages to track transactions"
-                               FontSize="12" TextColor="{StaticResource TextSecondary}"/>
-                    </VerticalStackLayout>
-                    <Label Grid.Column="2" Text="✓" FontSize="20"
-                           TextColor="{StaticResource Success}"
-                           VerticalOptions="Center"/>
-                </Grid>
-            </Border>
-
-            <!-- Notifications -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
-                <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
-                    <Border Grid.Column="0" WidthRequest="44" HeightRequest="44"
-                            BackgroundColor="{StaticResource PrimaryLight}"
-                            StrokeShape="RoundRectangle 22" Stroke="Transparent">
-                        <Label Text="🔔" FontSize="20"
-                               HorizontalOptions="Center" VerticalOptions="Center"/>
-                    </Border>
-                    <HorizontalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="8">
-                        <VerticalStackLayout Spacing="2">
-                            <HorizontalStackLayout Spacing="8">
-                                <Label Text="Notifications" FontAttributes="Bold" FontSize="14"
-                                       TextColor="{StaticResource TextPrimary}"/>
-                                <Border Padding="6,2" BackgroundColor="{StaticResource SurfaceVariant}"
-                                        Stroke="Transparent" StrokeShape="RoundRectangle 6">
-                                    <Label Text="optional" FontSize="10"
-                                           TextColor="{StaticResource TextSecondary}"/>
-                                </Border>
-                            </HorizontalStackLayout>
-                            <Label Text="Instant alerts when money moves (optional)"
-                                   FontSize="12" TextColor="{StaticResource TextSecondary}"/>
-                        </VerticalStackLayout>
-                    </HorizontalStackLayout>
-                    <Label Grid.Column="2" Text="✓" FontSize="20"
-                           TextColor="{StaticResource Success}"
-                           VerticalOptions="Center"/>
-                </Grid>
             </Border>
 
             <!-- ── DATA ───────────────────────────────────────────── -->
@@ -173,9 +111,9 @@
                         <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" Spacing="2"
                                              VerticalOptions="Center">
                             <Label Text="Import from backup file" FontAttributes="Bold" FontSize="13"
-                                   TextColor="{StaticResource TextSecondary}"/>
+                                   TextColor="{StaticResource TextPrimary}"/>
                             <Label Text="XML from SMS Backup &amp; Restore app"
-                                   FontSize="12" TextColor="{StaticResource TextHint}"/>
+                                   FontSize="12" TextColor="{StaticResource TextSecondary}"/>
                         </VerticalStackLayout>
                     </Grid>
                     <Button Text="Choose XML File" Command="{Binding ImportXmlCommand}"
@@ -192,9 +130,9 @@
                         <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" Spacing="2"
                                              VerticalOptions="Center">
                             <Label Text="Re-detect SIM transfers" FontAttributes="Bold" FontSize="13"
-                                   TextColor="{StaticResource TextSecondary}"/>
+                                   TextColor="{StaticResource TextPrimary}"/>
                             <Label Text="Finds inter-SIM transfers in existing history"
-                                   FontSize="12" TextColor="{StaticResource TextHint}"/>
+                                   FontSize="12" TextColor="{StaticResource TextSecondary}"/>
                         </VerticalStackLayout>
                     </Grid>
                     <Button Text="Re-detect Now" Command="{Binding RedetectSimTransfersCommand}"
@@ -254,172 +192,12 @@
                     Style="{StaticResource DangerButtonStyle}"
                     Margin="0,0,0,20"/>
 
-            <!-- ── MANAGE ──────────────────────────────────────────── -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
-                <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
-                    <Border Grid.Column="0" WidthRequest="44" HeightRequest="44"
-                            BackgroundColor="{StaticResource SurfaceVariant}"
-                            StrokeShape="RoundRectangle 22" Stroke="Transparent">
-                        <Label Text="🏷️" FontSize="20"
-                               HorizontalOptions="Center" VerticalOptions="Center"/>
-                    </Border>
-                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                        <Label Text="Manage Categories" FontAttributes="Bold" FontSize="14"
-                               TextColor="{StaticResource TextPrimary}"/>
-                        <Label Text="Add, edit or remove spending categories"
-                               FontSize="12" TextColor="{StaticResource TextSecondary}"/>
-                    </VerticalStackLayout>
-                    <Label Grid.Column="2" Text="→" FontSize="18"
-                           TextColor="{StaticResource TextSecondary}"
-                           VerticalOptions="Center"/>
-                </Grid>
-            </Border>
-
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
-                <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
-                    <Border Grid.Column="0" WidthRequest="44" HeightRequest="44"
-                            BackgroundColor="{StaticResource SurfaceVariant}"
-                            StrokeShape="RoundRectangle 22" Stroke="Transparent">
-                        <Label Text="🌐" FontSize="20"
-                               HorizontalOptions="Center" VerticalOptions="Center"/>
-                    </Border>
-                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                        <Label Text="Community Learning" FontAttributes="Bold" FontSize="14"
-                               TextColor="{StaticResource TextPrimary}"/>
-                        <Label Text="Help others auto-categorize merchants"
-                               FontSize="12" TextColor="{StaticResource TextSecondary}"/>
-                    </VerticalStackLayout>
-                    <Switch Grid.Column="2" IsToggled="{Binding CommunityLearning}"
-                            OnColor="{StaticResource Primary}"
-                            VerticalOptions="Center"/>
-                </Grid>
-            </Border>
-
-            <!-- ── HELP ───────────────────────────────────────────── -->
-            <Label Text="HELP" FontSize="11" FontAttributes="Bold"
-                   CharacterSpacing="1.5"
-                   TextColor="{StaticResource TextSecondary}"
-                   Margin="4,0,0,10"/>
-
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8">
-                <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
-                    <Border Grid.Column="0" WidthRequest="44" HeightRequest="44"
-                            BackgroundColor="{StaticResource SurfaceVariant}"
-                            StrokeShape="RoundRectangle 22" Stroke="Transparent">
-                        <Label Text="✨" FontSize="20"
-                               HorizontalOptions="Center" VerticalOptions="Center"/>
-                    </Border>
-                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                        <Label Text="What's New" FontAttributes="Bold" FontSize="14"
-                               TextColor="{StaticResource TextPrimary}"/>
-                        <Label Text="See the latest features added to Cheda"
-                               FontSize="12" TextColor="{StaticResource TextSecondary}"/>
-                    </VerticalStackLayout>
-                    <Label Grid.Column="2" Text="→" FontSize="18"
-                           TextColor="{StaticResource TextSecondary}"
-                           VerticalOptions="Center"/>
-                </Grid>
-            </Border>
-
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8">
-                <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
-                    <Border Grid.Column="0" WidthRequest="44" HeightRequest="44"
-                            BackgroundColor="{StaticResource SurfaceVariant}"
-                            StrokeShape="RoundRectangle 22" Stroke="Transparent">
-                        <Label Text="🚀" FontSize="20"
-                               HorizontalOptions="Center" VerticalOptions="Center"/>
-                    </Border>
-                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                        <Label Text="Replay App Guide" FontAttributes="Bold" FontSize="14"
-                               TextColor="{StaticResource TextPrimary}"/>
-                        <Label Text="Walk through the intro screens again"
-                               FontSize="12" TextColor="{StaticResource TextSecondary}"/>
-                    </VerticalStackLayout>
-                    <Label Grid.Column="2" Text="→" FontSize="18"
-                           TextColor="{StaticResource TextSecondary}"
-                           VerticalOptions="Center"/>
-                </Grid>
-            </Border>
-
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20">
-                <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
-                    <Border Grid.Column="0" WidthRequest="44" HeightRequest="44"
-                            BackgroundColor="{StaticResource SurfaceVariant}"
-                            StrokeShape="RoundRectangle 22" Stroke="Transparent">
-                        <Label Text="💡" FontSize="20"
-                               HorizontalOptions="Center" VerticalOptions="Center"/>
-                    </Border>
-                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                        <Label Text="Hidden Features" FontAttributes="Bold" FontSize="14"
-                               TextColor="{StaticResource TextPrimary}"/>
-                        <Label Text="Exclude transactions · Dual SIM · Export CSV"
-                               FontSize="12" TextColor="{StaticResource TextSecondary}"/>
-                    </VerticalStackLayout>
-                    <Label Grid.Column="2" Text="→" FontSize="18"
-                           TextColor="{StaticResource TextSecondary}"
-                           VerticalOptions="Center"/>
-                </Grid>
-            </Border>
-
             <!-- ── ABOUT ──────────────────────────────────────────── -->
             <Label Text="ABOUT" FontSize="11" FontAttributes="Bold"
                    CharacterSpacing="1.5"
                    TextColor="{StaticResource TextSecondary}"
                    Margin="4,0,0,10"/>
 
-            <!-- Buy me a Coffee + Donate -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
-                <VerticalStackLayout Padding="16" Spacing="12">
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                        <Border Grid.Column="0" WidthRequest="44" HeightRequest="44"
-                                BackgroundColor="{StaticResource SurfaceVariant}"
-                                StrokeShape="RoundRectangle 22" Stroke="Transparent">
-                            <Label Text="❤️" FontSize="22"
-                                   HorizontalOptions="Center" VerticalOptions="Center"/>
-                        </Border>
-                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                            <Label Text="Buy me a Coffee" FontAttributes="Bold" FontSize="14"
-                                   TextColor="{StaticResource TextPrimary}"/>
-                            <Label Text="Cheda is free, your support keeps it alive"
-                                   FontSize="12" TextColor="{StaticResource TextSecondary}"/>
-                        </VerticalStackLayout>
-                    </Grid>
-                    <Button Text="Donate via Card or M-Pesa"
-                            Command="{Binding DonateCommand}"
-                            BackgroundColor="{StaticResource Primary}"
-                            TextColor="{StaticResource TextOnPrimary}"
-                            CornerRadius="12"
-                            FontAttributes="Bold"
-                            HeightRequest="52"/>
-                    <Label Text="Supports card, M-Pesa, and more"
-                           FontSize="11" TextColor="{StaticResource TextHint}"
-                           HorizontalOptions="Center"/>
-                    <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}"/>
-                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                        <Border Grid.Column="0" WidthRequest="40" HeightRequest="40"
-                                BackgroundColor="{StaticResource SurfaceVariant}"
-                                StrokeShape="RoundRectangle 20" Stroke="Transparent">
-                            <Label Text="⭐" FontSize="20"
-                                   HorizontalOptions="Center" VerticalOptions="Center"/>
-                        </Border>
-                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                            <Label Text="Rate Cheda" FontAttributes="Bold" FontSize="14"
-                                   TextColor="{StaticResource TextPrimary}"/>
-                            <Label Text="A 5-star review helps others discover the app"
-                                   FontSize="12" TextColor="{StaticResource TextSecondary}"/>
-                        </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="→" FontSize="18"
-                               TextColor="{StaticResource TextSecondary}"
-                               VerticalOptions="Center">
-                            <Label.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding RateAppCommand}"/>
-                            </Label.GestureRecognizers>
-                        </Label>
-                    </Grid>
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- App info -->
             <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
                 <VerticalStackLayout Padding="16" Spacing="10">
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
@@ -450,8 +228,7 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Invite a Friend -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8">
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
                 <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
                     <Border Grid.Column="0" WidthRequest="44" HeightRequest="44"
                             BackgroundColor="{StaticResource SurfaceVariant}"
@@ -475,32 +252,6 @@
                 </Grid>
             </Border>
 
-            <!-- Check Data Health -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8">
-                <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
-                    <Border Grid.Column="0" WidthRequest="44" HeightRequest="44"
-                            BackgroundColor="{StaticResource SurfaceVariant}"
-                            StrokeShape="RoundRectangle 22" Stroke="Transparent">
-                        <Label Text="🏥" FontSize="20"
-                               HorizontalOptions="Center" VerticalOptions="Center"/>
-                    </Border>
-                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                        <Label Text="Check Data Health" FontAttributes="Bold" FontSize="14"
-                               TextColor="{StaticResource TextPrimary}"/>
-                        <Label Text="Find and fix any data integrity issues"
-                               FontSize="12" TextColor="{StaticResource TextSecondary}"/>
-                    </VerticalStackLayout>
-                    <Label Grid.Column="2" Text="→" FontSize="18"
-                           TextColor="{StaticResource TextSecondary}"
-                           VerticalOptions="Center">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding DataHealthCommand}"/>
-                        </Label.GestureRecognizers>
-                    </Label>
-                </Grid>
-            </Border>
-
-            <!-- Clear History -->
             <Border Style="{StaticResource CardStyle}" Margin="0,0,0,32">
                 <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
                     <Border Grid.Column="0" WidthRequest="44" HeightRequest="44"

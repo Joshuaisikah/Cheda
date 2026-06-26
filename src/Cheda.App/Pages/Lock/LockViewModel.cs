@@ -50,8 +50,14 @@ public partial class LockViewModel : ViewModelBase
     {
         if (_dismissed) return;
         if (_initialized) return; // fire biometric only once per instance — MIUI re-entries ignored
-        _initialized       = true;
-        var bioEnabled = _settings.Get("BiometricEnabled") != "false"; // default ON when not yet set
+        _initialized = true;
+
+        // Wait for the DB to open (kicked off in App.OnStart with the fallback key).
+        // This ensures BiometricEnabled is read from disk, not defaulted.
+        // Cap at 800ms — if the DB still isn't ready, fall through to safe defaults.
+        await Task.WhenAny(_db.WhenReadyAsync(), Task.Delay(800));
+
+        var bioEnabled = _settings.Get("BiometricEnabled") == "true";
         BiometricAvailable = (_bio?.IsAvailable ?? false) && bioEnabled;
 
         if (!BiometricAvailable)
@@ -201,15 +207,18 @@ public partial class LockViewModel : ViewModelBase
 
         if (window.Page?.Navigation.ModalStack.Count > 0)
         {
+            // Lock was pushed as a modal on top of the shell — pop it.
             var modal = window.Page.Navigation.ModalStack[^1];
             modal.Opacity        = 0;
             window.Page!.Opacity = 1;
             return window.Page.Navigation.PopModalAsync(animated: false);
         }
 
+        // Lock was set as Window.Page directly (resume path) — swap back to shell.
         if (window.Page != null) window.Page.Opacity = 0;
         var shell = IPlatformApplication.Current!.Services.GetRequiredService<AppShell>();
-        window.Page = shell;
+        shell.Opacity  = 1;
+        window.Page    = shell;
         return Task.CompletedTask;
     }
 }
