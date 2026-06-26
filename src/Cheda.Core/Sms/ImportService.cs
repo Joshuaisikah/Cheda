@@ -1,6 +1,7 @@
 using Cheda.Core.Categorization;
 using Cheda.Core.Parsing;
 using Cheda.Core.Storage;
+using System.Diagnostics;
 
 namespace Cheda.Core.Sms;
 
@@ -31,7 +32,9 @@ public sealed class ImportService : IImportService
         DateTimeOffset? since = null, CancellationToken ct = default)
     {
         var messages = await Task.Run(() => _reader.ReadInbox(since), ct);
-        return Process(messages);
+        // Process (parse + categorize + DB insert) must also run off the main thread —
+        // 1000+ messages means thousands of DB queries which would ANR the UI.
+        return await Task.Run(() => Process(messages), ct);
     }
 
     public Task<ImportResult> ProcessSingleAsync(
@@ -56,6 +59,8 @@ public sealed class ImportService : IImportService
         var reviewQueue  = new List<ReviewItem>();
         var inserted     = new List<Models.Transaction>();
 
+        Debug.WriteLine($"[ImportService] Processing {messages.Count} SMS messages");
+
         foreach (var sms in messages)
         {
             var result = _parser.Parse(sms.Sender, sms.Body, sms.Timestamp);
@@ -64,6 +69,7 @@ public sealed class ImportService : IImportService
             // completely unrecognised senders. These are counted but never stored.
             if (!result.Success || result.Transaction is null)
             {
+                Debug.WriteLine($"[ImportService] Unparseable: sender={sms.Sender} sim={sms.SimSlot?.ToString() ?? "null"} body[0..60]={sms.Body[..Math.Min(60, sms.Body.Length)]}");
                 unparseCount++;
                 continue;
             }
@@ -83,9 +89,15 @@ public sealed class ImportService : IImportService
             // TryAdd returns false for duplicates (same TransactionCode + Source).
             if (!_repository.TryAdd(tx))
             {
+                // The same M-Pesa transaction code appears as both Sent and Received when
+                // both SIMs are in the same phone's inbox.  Detect and flag the stored side.
+                SelfTransferDetector.TryMarkExistingAsOwnTransfer(tx, _repository);
+                Debug.WriteLine($"[ImportService] DUPLICATE blocked: code={tx.TransactionCode} type={tx.Type} sim={tx.SimSlot?.ToString() ?? "null"} amount={tx.Amount}");
                 dupCount++;
                 continue;
             }
+
+            Debug.WriteLine($"[ImportService] INSERTED: code={tx.TransactionCode} type={tx.Type} sim={tx.SimSlot?.ToString() ?? "null"} amount={tx.Amount} cat={tx.Category}");
 
             newCount++;
             inserted.Add(tx);
@@ -112,6 +124,7 @@ public sealed class ImportService : IImportService
             }
         }
 
+        Debug.WriteLine($"[ImportService] Done — new={newCount} dups={dupCount} unparseable={unparseCount} needsReview={reviewQueue.Count}");
         return new ImportResult
         {
             NewTransactions = newCount,

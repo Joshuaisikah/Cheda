@@ -12,9 +12,15 @@ public abstract partial class ViewModelBase : ObservableObject
 
     protected async Task RunAsync(Func<Task> action)
     {
-        IsBusy      = true;
+        IsBusy       = true;
         ErrorMessage = null;
-        try   { await action(); }
+        try
+        {
+            // Run all data-loading and computation off the UI thread.
+            // MAUI's binding infrastructure safely dispatches PropertyChanged
+            // notifications to the main thread on Android.
+            await Task.Run(action);
+        }
         catch (Exception ex) { ErrorMessage = ex.Message; }
         finally { IsBusy = false; }
     }

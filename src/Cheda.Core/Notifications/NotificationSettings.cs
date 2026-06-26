@@ -10,7 +10,7 @@ public sealed class NotificationSettings
     public bool BudgetBreachEnabled     { get; set; } = true;
     public bool LargeTransactionEnabled { get; set; } = true;
     public bool FulizaAlertEnabled      { get; set; } = true;
-    public bool NewTransactionEnabled   { get; set; } = false; // explicit opt-in
+    public bool NewTransactionEnabled   { get; set; } = true;
     public bool DailyDigestEnabled      { get; set; } = true;
     public bool WeeklyReportEnabled     { get; set; } = false;
 

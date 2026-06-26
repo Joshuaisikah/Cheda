@@ -19,7 +19,10 @@ public partial class TransactionsPage : ContentPage
         {
             _hasLoaded               = true;
             LoadingOverlay.IsVisible = false;
-            await ContentLayout.FadeToAsync(1, 350, Easing.CubicOut);
+            ContentLayout.TranslationY = 24;
+            await Task.WhenAll(
+                ContentLayout.FadeToAsync(1, 400, Easing.CubicOut),
+                ContentLayout.TranslateToAsync(0, 0, 350, Easing.CubicOut));
         }
     }
 }

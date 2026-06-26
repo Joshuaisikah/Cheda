@@ -2,76 +2,98 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Cheda.App.Pages.Transactions"
     x:Class="Cheda.App.Pages.Transactions.CategoryPickerPage"
-    BackgroundColor="{StaticResource Background}">
+    BackgroundColor="{StaticResource Background}"
+    Title="Pick Category"
+    Shell.NavBarIsVisible="True"
+    Shell.BackgroundColor="{StaticResource Surface}"
+    Shell.TitleColor="{StaticResource TextPrimary}"
+    Shell.ForegroundColor="{StaticResource Primary}">
 
-    <Grid RowDefinitions="Auto,Auto,*" BackgroundColor="{StaticResource Background}">
+    <Grid RowDefinitions="Auto,*" BackgroundColor="{StaticResource Background}">
 
-        <!-- ── Header ──────────────────────────────────────────────── -->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Padding="16,16,16,8">
-            <Button Grid.Column="0" Text="✕ Cancel" Command="{Binding CancelCommand}"
-                    BackgroundColor="Transparent" TextColor="{StaticResource TextSecondary}"
-                    FontSize="14" Padding="0" HeightRequest="36"/>
-            <Label Grid.Column="1" Text="Category" FontSize="17" FontAttributes="Bold"
-                   TextColor="{StaticResource TextPrimary}"
-                   HorizontalOptions="Center" VerticalOptions="Center"/>
-        </Grid>
-
-        <!-- ── Search ──────────────────────────────────────────────── -->
-        <Border Grid.Row="1" Margin="16,0,16,8"
-                BackgroundColor="{StaticResource SurfaceVariant}"
-                Stroke="{StaticResource Divider}" StrokeShape="RoundRectangle 10"
+        <!-- ── Search bar ──────────────────────────────────────────────── -->
+        <Border Grid.Row="0" Margin="16,12,16,10"
+                BackgroundColor="{StaticResource Surface}"
+                Stroke="{StaticResource Divider}"
+                StrokeShape="RoundRectangle 12"
                 StrokeThickness="1" Padding="12,0">
-            <Grid ColumnDefinitions="Auto,*">
-                <Label Grid.Column="0" Text="🔍" FontSize="15" VerticalOptions="Center"
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Label Grid.Column="0" Text="🔍" FontSize="14" VerticalOptions="Center"
                        Margin="0,0,8,0" TextColor="{StaticResource TextHint}"/>
                 <Entry Grid.Column="1" x:Name="SearchEntry"
                        Placeholder="Search categories…"
                        PlaceholderColor="{StaticResource TextHint}"
                        TextColor="{StaticResource TextPrimary}"
-                       BackgroundColor="Transparent" HeightRequest="44"
+                       BackgroundColor="Transparent"
+                       HeightRequest="44"
                        TextChanged="OnSearchChanged"/>
+                <Label Grid.Column="2" x:Name="ClearBtn"
+                       Text="✕" FontSize="14"
+                       TextColor="{StaticResource TextHint}"
+                       VerticalOptions="Center"
+                       IsVisible="False">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnClearSearch"/>
+                    </Label.GestureRecognizers>
+                </Label>
             </Grid>
         </Border>
 
-        <!-- ── List ────────────────────────────────────────────────── -->
-        <CollectionView Grid.Row="2" x:Name="CategoryList">
+        <!-- ── Grouped category list ───────────────────────────────────── -->
+        <CollectionView Grid.Row="1" x:Name="CategoryList">
             <CollectionView.ItemsLayout>
                 <LinearItemsLayout Orientation="Vertical" ItemSpacing="0"/>
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Grid BackgroundColor="{StaticResource Background}">
-                        <!-- Tap ripple layer -->
-                        <Grid ColumnDefinitions="Auto,*,Auto"
-                              Padding="16,0" HeightRequest="62" ColumnSpacing="14">
-                            <!-- Emoji badge -->
-                            <Border Grid.Column="0" WidthRequest="40" HeightRequest="40"
-                                    BackgroundColor="{StaticResource Surface}"
-                                    Stroke="{StaticResource Divider}" StrokeShape="RoundRectangle 10"
-                                    StrokeThickness="1">
-                                <Label Text="{Binding Emoji}" FontSize="20"
-                                       HorizontalOptions="Center" VerticalOptions="Center"/>
-                            </Border>
-                            <!-- Category name -->
-                            <Label Grid.Column="1" Text="{Binding Name}" FontSize="15"
-                                   TextColor="{StaticResource TextPrimary}"
-                                   VerticalOptions="Center"/>
-                            <!-- Arrow -->
-                            <Label Grid.Column="2" Text="›" FontSize="22"
-                                   TextColor="{StaticResource Primary}"
-                                   VerticalOptions="Center"/>
+                <DataTemplate x:DataType="local:CategoryListItem">
+                    <VerticalStackLayout>
+
+                        <!-- Section header -->
+                        <Grid BackgroundColor="{StaticResource Background}"
+                              IsVisible="{Binding IsHeader}"
+                              Padding="16,16,16,6">
+                            <Label Text="{Binding GroupLabel}"
+                                   FontSize="11" FontAttributes="Bold"
+                                   CharacterSpacing="1.5"
+                                   TextColor="{StaticResource TextSecondary}"/>
                         </Grid>
-                        <!-- Bottom divider -->
-                        <BoxView VerticalOptions="End" HeightRequest="1"
-                                 BackgroundColor="{StaticResource Divider}"
-                                 Margin="70,0,0,0"/>
-                        <!-- Full-row tap -->
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnItemTapped"
-                                                  CommandParameter="{Binding Name}"/>
-                        </Grid.GestureRecognizers>
-                    </Grid>
+
+                        <!-- Category row -->
+                        <Grid BackgroundColor="{StaticResource Background}"
+                              IsVisible="{Binding IsCategory}">
+                            <Grid ColumnDefinitions="Auto,*,Auto"
+                                  Padding="16,0" HeightRequest="56" ColumnSpacing="12"
+                                  BackgroundColor="{StaticResource Background}">
+                                <Border Grid.Column="0"
+                                        WidthRequest="38" HeightRequest="38"
+                                        BackgroundColor="{StaticResource Surface}"
+                                        Stroke="{StaticResource Divider}"
+                                        StrokeShape="RoundRectangle 10"
+                                        StrokeThickness="1"
+                                        VerticalOptions="Center">
+                                    <Label Text="{Binding Emoji}" FontSize="19"
+                                           HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Border>
+                                <Label Grid.Column="1" Text="{Binding Name}"
+                                       FontSize="14"
+                                       TextColor="{StaticResource TextPrimary}"
+                                       VerticalOptions="Center"/>
+                                <Label Grid.Column="2" Text="›" FontSize="20"
+                                       TextColor="{StaticResource TextHint}"
+                                       VerticalOptions="Center"/>
+                            </Grid>
+                            <BoxView VerticalOptions="End" HeightRequest="1"
+                                     BackgroundColor="{StaticResource Divider}"
+                                     Margin="68,0,0,0"/>
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnItemTapped"
+                                                      CommandParameter="{Binding Name}"/>
+                            </Grid.GestureRecognizers>
+                        </Grid>
+
+                    </VerticalStackLayout>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

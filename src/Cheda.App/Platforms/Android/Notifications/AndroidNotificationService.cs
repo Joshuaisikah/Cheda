@@ -7,19 +7,14 @@ using Cheda.Core.Storage;
 
 namespace Cheda.App.Platforms.Android.Notifications;
 
-/// <summary>
-/// Delivers local notifications via Android's NotificationManager (no third-party SDK needed).
-/// Quiet-hours and daily-cap enforcement happen here so the Core evaluator stays pure.
-///
-/// Note on reliable delivery: real-time alerts (triggered by SmsBroadcastReceiver) are the
-/// reliable backbone. Scheduled digests via WorkManager are best-effort — OEMs aggressively
-/// kill background work. Tell users in Settings to disable battery optimisation for Cheda
-/// if they want reliable daily digests.
-/// </summary>
 internal sealed class AndroidNotificationService : INotificationService
 {
-    private const string AlertChannelId  = "cheda_alerts";
-    private const string DigestChannelId = "cheda_digest";
+    private const string AlertChannelId   = "cheda_alerts";
+    private const string DigestChannelId  = "cheda_digest";
+    private const string BudgetChannelId  = "cheda_budget";
+
+    // Brand terracotta colour used as notification accent
+    private static readonly int BrandColor = global::Android.Graphics.Color.ParseColor("#F4A28A").ToArgb();
 
     private readonly NotificationSettingsService _settingsSvc;
     private readonly ISettingsRepository         _settingsRepo;
@@ -41,7 +36,8 @@ internal sealed class AndroidNotificationService : INotificationService
         if (IsQuietHours(s))               return Task.CompletedTask;
         if (IsDailyCapped(s))              return Task.CompletedTask;
 
-        Post(AlertChannelId, alert.Title, alert.Body, NotificationCompat.PriorityHigh);
+        var (channelId, priority, title, body) = BuildContent(alert);
+        Post(channelId, priority, title, body);
         IncrementDailyCount();
         return Task.CompletedTask;
     }
@@ -52,8 +48,47 @@ internal sealed class AndroidNotificationService : INotificationService
         if (!s.DailyDigestEnabled) return Task.CompletedTask;
         if (IsQuietHours(s))       return Task.CompletedTask;
 
-        Post(DigestChannelId, digest.Title, digest.Body, NotificationCompat.PriorityDefault);
+        Post(DigestChannelId, NotificationCompat.PriorityDefault,
+             "📊 " + digest.Title, digest.Body);
         return Task.CompletedTask;
+    }
+
+    // ── Content builders ──────────────────────────────────────────────────────
+
+    private static (string channelId, int priority, string title, string body) BuildContent(AppAlert alert)
+    {
+        return alert.Type switch
+        {
+            AlertType.NewTransaction => (
+                AlertChannelId, NotificationCompat.PriorityDefault,
+                FormatNewTxTitle(alert),
+                alert.Body),
+
+            AlertType.LargeTransaction => (
+                AlertChannelId, NotificationCompat.PriorityHigh,
+                "⚠️ " + alert.Title,
+                alert.Body),
+
+            AlertType.FulizaDrawdown => (
+                AlertChannelId, NotificationCompat.PriorityHigh,
+                "⚡ " + alert.Title,
+                alert.Body),
+
+            AlertType.BudgetBreach => (
+                BudgetChannelId, NotificationCompat.PriorityHigh,
+                "📊 " + alert.Title,
+                alert.Body),
+
+            _ => (AlertChannelId, NotificationCompat.PriorityDefault, alert.Title, alert.Body),
+        };
+    }
+
+    private static string FormatNewTxTitle(AppAlert alert)
+    {
+        // alert.Title is already "M-PESA Ksh 500 sent" or "M-PESA Ksh 1,200 received"
+        var lower = alert.Title.ToLowerInvariant();
+        var emoji = lower.Contains("received") ? "⬇️" : "⬆️";
+        return $"{emoji} {alert.Title}";
     }
 
     // ── Gating helpers ────────────────────────────────────────────────────────
@@ -73,7 +108,6 @@ internal sealed class AndroidNotificationService : INotificationService
     {
         if (!s.QuietHoursEnabled) return false;
         var now = TimeOnly.FromDateTime(DateTime.Now);
-        // QuietStart > QuietEnd means the window wraps midnight (e.g. 22:00–07:00).
         return s.QuietStart <= s.QuietEnd
             ? now >= s.QuietStart && now < s.QuietEnd
             : now >= s.QuietStart || now  < s.QuietEnd;
@@ -102,24 +136,35 @@ internal sealed class AndroidNotificationService : INotificationService
 
     // ── Android plumbing ──────────────────────────────────────────────────────
 
-    private static void Post(string channelId, string title, string body, int priority)
+    private static void Post(string channelId, int priority, string title, string body)
     {
         EnsureChannels();
 
         var ctx = global::Android.App.Application.Context;
         if (ctx is null) return;
 
-        // Break the fluent chain — each Xamarin Java binding method returns Builder? so
-        // chaining causes CS8602 on every call. Calling on a typed variable avoids this.
+        // Tap → open app (bring existing instance to front or create new one)
+        var openIntent = new Intent(ctx, typeof(MainActivity));
+        openIntent.SetFlags(ActivityFlags.SingleTop | ActivityFlags.ClearTop);
+        var flags = Build.VERSION.SdkInt >= BuildVersionCodes.M
+            ? PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable
+            : PendingIntentFlags.UpdateCurrent;
+        var pendingIntent = PendingIntent.GetActivity(ctx, 0, openIntent, flags);
+
         NotificationCompat.Builder builder = new(ctx, channelId);
-        builder.SetSmallIcon(global::Android.Resource.Drawable.IcDialogInfo);
+        builder.SetSmallIcon(Resource.Mipmap.appicon);
+        builder.SetColor(BrandColor);
         builder.SetContentTitle(title);
         builder.SetContentText(body);
         builder.SetStyle(new NotificationCompat.BigTextStyle().BigText(body));
+        builder.SetContentIntent(pendingIntent);
         builder.SetAutoCancel(true);
         builder.SetPriority(priority);
-        var notif = builder.Build();
+        builder.SetCategory(channelId == BudgetChannelId
+            ? NotificationCompat.CategoryStatus
+            : NotificationCompat.CategoryMessage);
 
+        var notif = builder.Build();
         if (notif is null) return;
 
         if (ctx.GetSystemService(Context.NotificationService) is NotificationManager mgr)
@@ -137,14 +182,19 @@ internal sealed class AndroidNotificationService : INotificationService
         if (mgr is null) return;
 
         mgr.CreateNotificationChannel(new NotificationChannel(
-            AlertChannelId, "Transaction Alerts", NotificationImportance.High)
+            AlertChannelId, "M-PESA Alerts", NotificationImportance.High)
         {
-            Description = "Budget breaches, large transactions, and Fuliza alerts.",
+            Description = "Real-time alerts: received money, sent money, large transactions.",
         });
         mgr.CreateNotificationChannel(new NotificationChannel(
-            DigestChannelId, "Daily Digest", NotificationImportance.Default)
+            BudgetChannelId, "Budget Warnings", NotificationImportance.High)
         {
-            Description = "Daily spending summary.",
+            Description = "Alerts when spending approaches or exceeds a budget limit.",
+        });
+        mgr.CreateNotificationChannel(new NotificationChannel(
+            DigestChannelId, "Daily Summary", NotificationImportance.Default)
+        {
+            Description = "Daily spending digest sent once per day.",
         });
         _channelsReady = true;
     }

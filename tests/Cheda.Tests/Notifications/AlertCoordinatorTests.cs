@@ -78,8 +78,9 @@ public sealed class AlertCoordinatorTests
     }
 
     [Fact]
-    public async Task EvaluateAndAlertAsync_small_normal_transaction_fires_no_alerts()
+    public async Task EvaluateAndAlertAsync_small_normal_transaction_fires_new_tx_alert()
     {
+        // NewTransaction notifications are ON by default — even small sends fire them.
         var tx   = MakeTx(type: TransactionType.Sent, amount: 50m);
         var repo = new InMemoryTransactionRepository();
         repo.TryAdd(tx);
@@ -89,7 +90,7 @@ public sealed class AlertCoordinatorTests
 
         await coord.EvaluateAndAlertAsync(new ImportResult { Inserted = [tx] });
 
-        notif.SentAlerts.Should().BeEmpty();
+        notif.SentAlerts.Should().ContainSingle(a => a.Type == AlertType.NewTransaction);
     }
 
     [Fact]

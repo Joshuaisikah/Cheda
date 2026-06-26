@@ -29,6 +29,10 @@ internal sealed class TransactionEntity
     public bool IsNonExpenseTransfer { get; set; }
     public string? ReversesTransactionCode { get; set; }
     public int? SimSlot { get; set; }
+    public int?     SelfTransferSimSlot      { get; set; }
+    public decimal? SelfTransferBalanceAfter { get; set; }
+    public string? Note { get; set; }
+    public decimal? FulizaLimit { get; set; }
 
     internal static TransactionEntity From(Transaction t) => new()
     {
@@ -47,9 +51,13 @@ internal sealed class TransactionEntity
         Category                = t.Category,
         CategoryConfidence      = t.CategoryConfidence,
         MatchedRule             = t.MatchedRule,
-        IsNonExpenseTransfer    = t.IsNonExpenseTransfer,
-        ReversesTransactionCode = t.ReversesTransactionCode,
-        SimSlot                 = t.SimSlot,
+        IsNonExpenseTransfer     = t.IsNonExpenseTransfer,
+        ReversesTransactionCode  = t.ReversesTransactionCode,
+        SimSlot                  = t.SimSlot,
+        SelfTransferSimSlot      = t.SelfTransferSimSlot,
+        SelfTransferBalanceAfter = t.SelfTransferBalanceAfter,
+        Note                     = t.Note,
+        FulizaLimit              = t.FulizaLimit,
     };
 
     internal Transaction ToDomain() => new()
@@ -67,9 +75,13 @@ internal sealed class TransactionEntity
         Category                = Category,
         CategoryConfidence      = CategoryConfidence,
         MatchedRule             = MatchedRule,
-        IsNonExpenseTransfer    = IsNonExpenseTransfer,
-        ReversesTransactionCode = ReversesTransactionCode,
-        SimSlot                 = SimSlot,
+        IsNonExpenseTransfer     = IsNonExpenseTransfer,
+        ReversesTransactionCode  = ReversesTransactionCode,
+        SimSlot                  = SimSlot,
+        SelfTransferSimSlot      = SelfTransferSimSlot,
+        SelfTransferBalanceAfter = SelfTransferBalanceAfter,
+        Note                     = Note,
+        FulizaLimit              = FulizaLimit,
     };
 
     internal static string MakeDedupKey(string code, TransactionSource source) =>

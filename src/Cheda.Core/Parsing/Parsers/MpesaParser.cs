@@ -10,13 +10,14 @@ namespace Cheda.Core.Parsing.Parsers;
 /// </summary>
 public sealed partial class MpesaParser : ISourceParser
 {
-    private const string KnownSender = "MPESA";
+    // M-Pesa Kenya sends confirmations from "MPESA" and sometimes "M-PESA" or "M-PESA APP".
+    private static readonly HashSet<string> KnownSenders =
+        new(StringComparer.OrdinalIgnoreCase) { "MPESA", "M-PESA", "M-PESA APP", "22141" };
 
     public TransactionSource Source => TransactionSource.Mpesa;
 
     public bool CanHandle(string sender, string body) =>
-        sender.Equals(KnownSender, StringComparison.OrdinalIgnoreCase) &&
-        IsTransactionMessage(body);
+        KnownSenders.Contains(sender) && IsTransactionMessage(body);
 
     public ParseResult Parse(string sender, string body, DateTimeOffset timestamp)
     {
@@ -279,25 +280,78 @@ public sealed partial class MpesaParser : ISourceParser
         };
     }
 
-    // ── Fuliza drawdown ─────────────────────────────────────────────────────────
-    // "QGH2XK1A23 Confirmed. You have used Fuliza M-PESA for Ksh200.00. Repay by 22/6/25. Fuliza M-PESA balance is Ksh500.00."
+    // ── Fuliza drawdown (modern format) ─────────────────────────────────────────
+    // "UEO2Q5E0EZ Confirmed. Fuliza M-PESA amount is Ksh 1.96. Access Fee charged Ksh 0.02.
+    //   Total Fuliza M-PESA outstanding amount is Ksh1.98 due on 23/06/26."
     [GeneratedRegex(
-        @"(?<code>[A-Z0-9]{10})\s+Confirmed\.\s+You have used Fuliza M-PESA for\s+Ksh(?<amount>[\d,]+\.?\d*)",
+        @"(?<code>[A-Z0-9]{10})\s+Confirmed\.\s+Fuliza M-PESA amount is\s+Ksh\s*(?<amount>[\d,]+\.?\d*)\.?\s+Access Fee charged Ksh\s*(?<fee>[\d,]+\.?\d*)\.\s+Total Fuliza M-PESA outstanding amount is\s+Ksh\s*(?<outstanding>[\d,]+\.?\d*)",
         RegexOptions.IgnoreCase)]
-    private static partial Regex FulizaRegex();
+    private static partial Regex FulizaDrawdownRegex();
+
+    // ── Fuliza drawdown (legacy format) ─────────────────────────────────────────
+    // "QGH2XK1A23 Confirmed. You have used Fuliza M-PESA for Ksh200.00."
+    [GeneratedRegex(
+        @"(?<code>[A-Z0-9]{10})\s+Confirmed\.\s+You have used Fuliza M-PESA for\s+Ksh\s*(?<amount>[\d,]+\.?\d*)",
+        RegexOptions.IgnoreCase)]
+    private static partial Regex FulizaLegacyRegex();
+
+    // ── Fuliza repayment ────────────────────────────────────────────────────────
+    // "UEF2Q4DEL1 Confirmed. Ksh 624.29 from your M-PESA has been used to fully pay your
+    //   outstanding Fuliza M-PESA. Available Fuliza M-PESA limit is Ksh 1700.00. Your M-PESA balance is 675.71."
+    [GeneratedRegex(
+        @"(?<code>[A-Z0-9]{10})\s+Confirmed\.\s+Ksh\s*(?<amount>[\d,]+\.?\d*)\s+from your M-PESA has been used to (?:fully )?pay your outstanding Fuliza M-PESA\.\s+Available Fuliza M-PESA limit is\s+Ksh\s*(?<limit>[\d,]+\.?\d*)",
+        RegexOptions.IgnoreCase)]
+    private static partial Regex FulizaRepaidRegex();
 
     private static Transaction? TryParseFuliza(string body, DateTimeOffset timestamp)
     {
-        var m = FulizaRegex().Match(body);
-        if (!m.Success) return null;
+        // Modern drawdown format — extract amount, fee, and outstanding balance
+        var m = FulizaDrawdownRegex().Match(body);
+        if (m.Success)
+        {
+            return new Transaction
+            {
+                TransactionCode = m.Groups["code"].Value,
+                Source          = TransactionSource.Mpesa,
+                Amount          = ParseAmount(m.Groups["amount"].Value),
+                Type            = TransactionType.Fuliza,
+                TransactionCost = ParseAmount(m.Groups["fee"].Value),
+                BalanceAfter    = ParseAmount(m.Groups["outstanding"].Value),
+                Timestamp       = timestamp,
+                RawMessage      = body,
+            };
+        }
+
+        // Repayment — not an expense, marks when Fuliza is cleared
+        var r = FulizaRepaidRegex().Match(body);
+        if (r.Success)
+        {
+            return new Transaction
+            {
+                TransactionCode      = r.Groups["code"].Value,
+                Source               = TransactionSource.Mpesa,
+                Amount               = ParseAmount(r.Groups["amount"].Value),
+                Type                 = TransactionType.Fuliza,
+                FulizaLimit          = ParseAmount(r.Groups["limit"].Value),
+                BalanceAfter         = ExtractBalance(body),
+                IsNonExpenseTransfer = true,
+                Counterparty         = "Fuliza Repayment",
+                Timestamp            = timestamp,
+                RawMessage           = body,
+            };
+        }
+
+        // Legacy format
+        var leg = FulizaLegacyRegex().Match(body);
+        if (!leg.Success) return null;
         return new Transaction
         {
-            TransactionCode = m.Groups["code"].Value,
-            Source = TransactionSource.Mpesa,
-            Amount = ParseAmount(m.Groups["amount"].Value),
-            Type = TransactionType.Fuliza,
-            Timestamp = timestamp,
-            RawMessage = body,
+            TransactionCode = leg.Groups["code"].Value,
+            Source          = TransactionSource.Mpesa,
+            Amount          = ParseAmount(leg.Groups["amount"].Value),
+            Type            = TransactionType.Fuliza,
+            Timestamp       = timestamp,
+            RawMessage      = body,
         };
     }
 
@@ -428,7 +482,8 @@ public sealed partial class MpesaParser : ISourceParser
     [GeneratedRegex(@"[A-Z0-9]{10}", RegexOptions.None)]
     private static partial Regex TransactionCodeRegex();
 
-    [GeneratedRegex(@"balance is Ksh(?<bal>[\d,]+\.?\d*)", RegexOptions.IgnoreCase)]
+    // Matches both "balance is Ksh1,234" and "balance is 1234" (Fuliza repayment drops "Ksh")
+    [GeneratedRegex(@"balance is\s+(?:Ksh\s*)?(?<bal>[\d,]+\.?\d*)", RegexOptions.IgnoreCase)]
     private static partial Regex BalanceRegex();
 
     [GeneratedRegex(@"Transaction cost,\s+Ksh(?<cost>[\d,]+\.?\d*)", RegexOptions.IgnoreCase)]

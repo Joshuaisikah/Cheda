@@ -8,135 +8,335 @@
     BackgroundColor="{StaticResource Background}">
 
     <Grid>
-    <Grid x:Name="ContentLayout" RowDefinitions="Auto,Auto,*" Opacity="0">
 
-        <!-- ── Search box ─────────────────────────────────────────────── -->
+    <!-- ── Main content ─────────────────────────────────────────────── -->
+    <Grid x:Name="ContentLayout" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" Opacity="0">
+
+        <!-- Row 0: Search box -->
         <Border Grid.Row="0"
                 BackgroundColor="{StaticResource Surface}"
-                Stroke="{StaticResource Divider}"
+                Stroke="{StaticResource Divider}" StrokeThickness="1"
                 StrokeShape="RoundRectangle 12"
-                StrokeThickness="1"
-                Margin="12,10,12,4" Padding="12,0">
+                Margin="12,12,12,0" Padding="12,0">
             <Grid ColumnDefinitions="Auto,*">
-                <Label Grid.Column="0" Text="🔍" VerticalOptions="Center"
-                       TextColor="{StaticResource TextHint}" FontSize="16" Margin="0,0,8,0"/>
+                <Label Grid.Column="0" Text="🔍" FontSize="16"
+                       TextColor="{StaticResource TextHint}"
+                       VerticalOptions="Center" Margin="0,0,8,0"/>
                 <Entry Grid.Column="1"
                        Placeholder="Search transactions..."
                        Text="{Binding SearchText}"
                        PlaceholderColor="{StaticResource TextHint}"
                        TextColor="{StaticResource TextPrimary}"
                        BackgroundColor="Transparent"
-                       HeightRequest="44"/>
+                       HeightRequest="46"/>
             </Grid>
         </Border>
 
-        <!-- ── Filter chips ───────────────────────────────────────────── -->
-        <CollectionView Grid.Row="1" ItemsSource="{Binding Filters}"
-                        HeightRequest="44" Margin="12,0,12,4">
-            <CollectionView.ItemsLayout>
-                <LinearItemsLayout Orientation="Horizontal" ItemSpacing="8"/>
-            </CollectionView.ItemsLayout>
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="x:String">
-                    <Border Padding="14,7"
-                            StrokeShape="RoundRectangle 20"
-                            BackgroundColor="{StaticResource Surface}"
-                            Stroke="{StaticResource Divider}"
-                            StrokeThickness="1"
-                            Margin="0,4">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SetFilterCommand}"
-                                CommandParameter="{Binding .}"/>
-                        </Border.GestureRecognizers>
-                        <Label Text="{Binding .}" TextColor="{StaticResource TextSecondary}"
-                               FontSize="12" VerticalOptions="Center"/>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+        <!-- Row 1: Filter label + chips -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="16,12,12,0">
+            <Label Grid.Column="0" Text="Filter by:"
+                   FontSize="12" TextColor="{StaticResource TextSecondary}"
+                   VerticalOptions="Center" Margin="0,0,8,0"/>
+            <HorizontalStackLayout Grid.Column="1" Spacing="8">
 
-        <!-- ── Transaction list ───────────────────────────────────────── -->
-        <RefreshView Grid.Row="2" Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
-            <CollectionView ItemsSource="{Binding Transactions}">
+                <!-- Type chip -->
+                <Border Padding="12,7" StrokeShape="RoundRectangle 20" StrokeThickness="1">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" Binding="{Binding TypeChipActive}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{StaticResource Primary}"/>
+                            <Setter Property="Stroke" Value="Transparent"/>
+                        </DataTrigger>
+                        <DataTrigger TargetType="Border" Binding="{Binding TypeChipActive}" Value="False">
+                            <Setter Property="BackgroundColor" Value="{StaticResource Surface}"/>
+                            <Setter Property="Stroke" Value="{StaticResource Divider}"/>
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ToggleTypeDropdownCommand}"/>
+                    </Border.GestureRecognizers>
+                    <Label FontSize="12" VerticalOptions="Center">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding TypeChipActive}" Value="True">
+                                <Setter Property="TextColor" Value="White"/>
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding TypeChipActive}" Value="False">
+                                <Setter Property="TextColor" Value="{StaticResource TextSecondary}"/>
+                            </DataTrigger>
+                        </Label.Triggers>
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="{Binding TypeChipLabel}"/>
+                                <Span Text=" ▾"/>
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </Border>
+
+                <!-- Date Range chip -->
+                <Border Padding="12,7" StrokeShape="RoundRectangle 20" StrokeThickness="1">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" Binding="{Binding DateChipActive}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{StaticResource Primary}"/>
+                            <Setter Property="Stroke" Value="Transparent"/>
+                        </DataTrigger>
+                        <DataTrigger TargetType="Border" Binding="{Binding DateChipActive}" Value="False">
+                            <Setter Property="BackgroundColor" Value="{StaticResource Surface}"/>
+                            <Setter Property="Stroke" Value="{StaticResource Divider}"/>
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ToggleDateDropdownCommand}"/>
+                    </Border.GestureRecognizers>
+                    <Label FontSize="12" VerticalOptions="Center">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding DateChipActive}" Value="True">
+                                <Setter Property="TextColor" Value="White"/>
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding DateChipActive}" Value="False">
+                                <Setter Property="TextColor" Value="{StaticResource TextSecondary}"/>
+                            </DataTrigger>
+                        </Label.Triggers>
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="{Binding DateChipLabel}"/>
+                                <Span Text=" ▾"/>
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </Border>
+
+                <!-- Account (SIM) chip -->
+                <Border Padding="12,7" StrokeShape="RoundRectangle 20" StrokeThickness="1">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" Binding="{Binding SimChipActive}" Value="True">
+                            <Setter Property="BackgroundColor" Value="{StaticResource Primary}"/>
+                            <Setter Property="Stroke" Value="Transparent"/>
+                        </DataTrigger>
+                        <DataTrigger TargetType="Border" Binding="{Binding SimChipActive}" Value="False">
+                            <Setter Property="BackgroundColor" Value="{StaticResource Surface}"/>
+                            <Setter Property="Stroke" Value="{StaticResource Divider}"/>
+                        </DataTrigger>
+                    </Border.Triggers>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ToggleSimDropdownCommand}"/>
+                    </Border.GestureRecognizers>
+                    <Label FontSize="12" VerticalOptions="Center">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding SimChipActive}" Value="True">
+                                <Setter Property="TextColor" Value="White"/>
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding SimChipActive}" Value="False">
+                                <Setter Property="TextColor" Value="{StaticResource TextSecondary}"/>
+                            </DataTrigger>
+                        </Label.Triggers>
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="{Binding SimChipLabel}"/>
+                                <Span Text=" ▾"/>
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </Border>
+
+            </HorizontalStackLayout>
+        </Grid>
+
+        <!-- Row 2: Type dropdown -->
+        <Border Grid.Row="2"
+                IsVisible="{Binding ShowTypeDropdown}"
+                BackgroundColor="{StaticResource Surface}"
+                Stroke="{StaticResource Divider}" StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                Margin="12,6,12,0" Padding="0,4">
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding TypeOptions}" Spacing="0">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Label Text="{Binding .}" FontSize="15"
+                               TextColor="{StaticResource TextPrimary}"
+                               Padding="16,11">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectTypeCommand}"
+                                    CommandParameter="{Binding .}"/>
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Row 2: Date Range dropdown -->
+        <Border Grid.Row="2"
+                IsVisible="{Binding ShowDateDropdown}"
+                BackgroundColor="{StaticResource Surface}"
+                Stroke="{StaticResource Divider}" StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                Margin="12,6,12,0" Padding="0,4">
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding DateOptions}" Spacing="0">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Label Text="{Binding .}" FontSize="15"
+                               TextColor="{StaticResource TextPrimary}"
+                               Padding="16,11">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectDateCommand}"
+                                    CommandParameter="{Binding .}"/>
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Row 2: SIM dropdown -->
+        <Border Grid.Row="2"
+                IsVisible="{Binding ShowSimDropdown}"
+                BackgroundColor="{StaticResource Surface}"
+                Stroke="{StaticResource Divider}" StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                Margin="12,6,12,0" Padding="0,4">
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding SimOptions}" Spacing="0">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Label Text="{Binding .}" FontSize="15"
+                               TextColor="{StaticResource TextPrimary}"
+                               Padding="16,11">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectSimCommand}"
+                                    CommandParameter="{Binding .}"/>
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Row 3: Spacer + transparent backdrop that closes open dropdowns on tap -->
+        <Grid Grid.Row="3" Grid.RowSpan="3"
+              IsVisible="{Binding AnyDropdownOpen}"
+              BackgroundColor="Transparent">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseDropdownsCommand}"/>
+            </Grid.GestureRecognizers>
+        </Grid>
+        <BoxView Grid.Row="3" HeightRequest="6" Color="Transparent"/>
+
+        <!-- Row 5: Transaction list grouped by date -->
+        <RefreshView Grid.Row="5" Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
+            <CollectionView ItemsSource="{Binding Groups}" IsGrouped="True">
+
+                <CollectionView.GroupHeaderTemplate>
+                    <DataTemplate x:DataType="local:TxGroup">
+                        <Label Text="{Binding Header}"
+                               FontSize="13" FontAttributes="Bold"
+                               TextColor="{StaticResource Primary}"
+                               Margin="16,14,16,4"/>
+                    </DataTemplate>
+                </CollectionView.GroupHeaderTemplate>
+
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="local:TxRow">
-                        <Border BackgroundColor="{StaticResource Surface}" Margin="12,4"
+                        <Border BackgroundColor="{StaticResource Surface}" Margin="12,3"
                                 Stroke="Transparent" StrokeShape="RoundRectangle 14">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.OpenEditCommand}"
                                     CommandParameter="{Binding .}"/>
                             </Border.GestureRecognizers>
-                            <Grid ColumnDefinitions="4,Auto,*,Auto" ColumnSpacing="0">
+                            <Grid ColumnDefinitions="4,Auto,*" ColumnSpacing="0">
 
                                 <!-- Left accent bar -->
                                 <BoxView Grid.Column="0"
                                          BackgroundColor="{Binding AccentColor}"
                                          CornerRadius="14,0,14,0"/>
 
-                                <!-- Type icon circle -->
-                                <Border Grid.Column="1"
-                                        WidthRequest="40" HeightRequest="40"
-                                        BackgroundColor="{StaticResource SurfaceVariant}"
-                                        Stroke="Transparent" StrokeShape="RoundRectangle 20"
-                                        Margin="12,12,0,12" VerticalOptions="Center">
-                                    <Label Text="{Binding TypeIcon}" FontSize="18"
-                                           HorizontalOptions="Center" VerticalOptions="Center"/>
-                                </Border>
+                                <!-- Icon circle with badge -->
+                                <Grid Grid.Column="1" WidthRequest="48" HeightRequest="48"
+                                      Margin="10,12,0,12" VerticalOptions="Center">
+                                    <Border WidthRequest="48" HeightRequest="48"
+                                            BackgroundColor="{StaticResource SurfaceVariant}"
+                                            Stroke="Transparent" StrokeShape="RoundRectangle 24">
+                                        <Label Text="{Binding CategoryIcon}" FontSize="22"
+                                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                                    </Border>
+                                    <Border WidthRequest="20" HeightRequest="20"
+                                            BackgroundColor="{Binding AccentColor}"
+                                            Stroke="{StaticResource Surface}" StrokeThickness="1.5"
+                                            StrokeShape="RoundRectangle 10"
+                                            HorizontalOptions="End" VerticalOptions="End"
+                                            Margin="0,0,-2,-2">
+                                        <Label Text="{Binding TypeIcon}" FontSize="8" FontAttributes="Bold"
+                                               TextColor="White"
+                                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                                    </Border>
+                                </Grid>
 
-                                <!-- Type label + counterparty + date + category chip -->
+                                <!-- Content -->
                                 <VerticalStackLayout Grid.Column="2"
-                                                     Margin="10,12,4,12" Spacing="2"
+                                                     Margin="10,12,12,12" Spacing="2"
                                                      VerticalOptions="Center">
-                                    <Label Text="{Binding TypeLabel}"
-                                           FontAttributes="Bold" FontSize="13"
-                                           TextColor="{StaticResource TextPrimary}"
-                                           MaxLines="1" LineBreakMode="TailTruncation"/>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Grid.Column="0"
+                                               Text="{Binding TypeLabel}"
+                                               FontAttributes="Bold" FontSize="13"
+                                               TextColor="{StaticResource TextPrimary}"
+                                               MaxLines="1" LineBreakMode="TailTruncation"/>
+                                        <Label Grid.Column="1"
+                                               Text="{Binding AmountLabel}"
+                                               FontAttributes="Bold" FontSize="13"
+                                               TextColor="{Binding AmountColor}"
+                                               HorizontalOptions="End"/>
+                                    </Grid>
                                     <Label Text="{Binding Counterparty}"
                                            FontSize="12" TextColor="{StaticResource Primary}"
                                            MaxLines="1" LineBreakMode="TailTruncation"/>
-                                    <HorizontalStackLayout Spacing="6" Margin="0,3,0,0">
-                                        <Label Text="{Binding DateLabel}" FontSize="10"
-                                               TextColor="{StaticResource TextHint}"
-                                               VerticalOptions="Center"/>
-                                        <Border Padding="7,2"
+                                    <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,0">
+                                        <HorizontalStackLayout Grid.Column="0" Spacing="6">
+                                            <Label Text="{Binding DateLabel}" FontSize="10"
+                                                   TextColor="{StaticResource TextHint}"
+                                                   VerticalOptions="Center"/>
+                                            <Border Padding="6,2"
+                                                    BackgroundColor="{StaticResource SurfaceVariant}"
+                                                    Stroke="Transparent" StrokeShape="RoundRectangle 6">
+                                                <Label Text="{Binding CategoryDisplay}" FontSize="10"
+                                                       TextColor="{StaticResource TextSecondary}"/>
+                                            </Border>
+                                        </HorizontalStackLayout>
+                                        <Border Grid.Column="1" Padding="6,2"
                                                 BackgroundColor="{StaticResource SurfaceVariant}"
-                                                Stroke="Transparent" StrokeShape="RoundRectangle 6">
-                                            <Label Text="{Binding CategoryDisplay}" FontSize="10"
+                                                Stroke="Transparent" StrokeShape="RoundRectangle 6"
+                                                IsVisible="{Binding HasSim}"
+                                                VerticalOptions="Center">
+                                            <Label Text="{Binding SimDisplay}" FontSize="10"
                                                    TextColor="{StaticResource TextSecondary}"/>
                                         </Border>
-                                    </HorizontalStackLayout>
+                                    </Grid>
                                 </VerticalStackLayout>
-
-                                <!-- Amount -->
-                                <Label Grid.Column="3"
-                                       Text="{Binding AmountLabel}"
-                                       FontAttributes="Bold" FontSize="13"
-                                       TextColor="{Binding AmountColor}"
-                                       VerticalOptions="Center"
-                                       Margin="0,0,14,0"/>
 
                             </Grid>
                         </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
+
                 <CollectionView.EmptyView>
                     <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
                                          Spacing="8" Margin="0,64">
-                        <Label Text="No transactions found." FontSize="15"
-                               TextColor="{StaticResource TextSecondary}" HorizontalOptions="Center"/>
-                        <Label Text="Import SMS to get started." FontSize="13"
-                               TextColor="{StaticResource TextHint}" HorizontalOptions="Center"/>
+                        <Label Text="📭" FontSize="48" HorizontalOptions="Center"/>
+                        <Label Text="No transactions found."
+                               FontSize="15" TextColor="{StaticResource TextSecondary}"
+                               HorizontalOptions="Center"/>
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
+
             </CollectionView>
         </RefreshView>
 
     </Grid>
 
     <!-- First-load overlay -->
-    <Grid x:Name="LoadingOverlay" BackgroundColor="{StaticResource Background}">
+    <Grid x:Name="LoadingOverlay" BackgroundColor="{StaticResource Background}" ZIndex="2">
         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="16">
             <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}"
                                WidthRequest="48" HeightRequest="48"/>
@@ -144,6 +344,6 @@
                    HorizontalOptions="Center"/>
         </VerticalStackLayout>
     </Grid>
-    </Grid>
 
+    </Grid>
 </ContentPage>

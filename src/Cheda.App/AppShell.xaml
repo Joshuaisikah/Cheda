@@ -6,14 +6,15 @@
     Title="Cheda"
     Shell.TabBarBackgroundColor="{StaticResource Surface}"
     Shell.TabBarForegroundColor="{StaticResource Primary}"
-    Shell.TabBarUnselectedColor="{StaticResource TextSecondary}">
+    Shell.TabBarUnselectedColor="{StaticResource TextSecondary}"
+    Shell.NavBarHasShadow="False">
 
     <TabBar>
-        <ShellContent x:Name="HomeTab"         Title="Home"    Icon="tab_home.svg"/>
-        <ShellContent x:Name="TransactionsTab" Title="Money"   Icon="tab_list.svg"/>
-        <ShellContent x:Name="PlanTab"         Title="Plan"    Icon="tab_wallet.png"/>
-        <ShellContent x:Name="InsightsTab"     Title="Reports" Icon="tab_chart.svg"/>
-        <ShellContent x:Name="SettingsTab"     Title="More"    Icon="tab_settings.svg"/>
+        <ShellContent x:Name="HomeTab"         Route="HomeTab"         Title="Home"         Icon="tab_home.svg"/>
+        <ShellContent x:Name="TransactionsTab" Route="TransactionsTab" Title="Transactions" Icon="tab_list.svg"/>
+        <ShellContent x:Name="PlanTab"         Route="PlanTab"         Title="Budget"       Icon="tab_wallet.png"/>
+        <ShellContent x:Name="InsightsTab"     Route="InsightsTab"     Title="Analytics"    Icon="tab_chart.svg"/>
+        <ShellContent x:Name="SettingsTab"     Route="SettingsTab"     Title="Settings"     Icon="tab_settings.svg"/>
     </TabBar>
 
 </Shell>

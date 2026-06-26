@@ -22,9 +22,11 @@ public sealed class DatabaseService : IDisposable
 {
     private const string FallbackKeyName = "cheda_db_key_v1";
 
-    private readonly IDatabaseKeyProvider _keyProvider;
-    private          SQLiteConnection?    _connection;
-    private readonly object               _initLock = new();
+    private readonly IDatabaseKeyProvider               _keyProvider;
+    private          SQLiteConnection?                  _connection;
+    private readonly object                             _initLock  = new();
+    private readonly TaskCompletionSource               _readyTcs  =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public DatabaseService(IDatabaseKeyProvider keyProvider) =>
         _keyProvider = keyProvider;
@@ -33,6 +35,9 @@ public sealed class DatabaseService : IDisposable
         FileSystem.AppDataDirectory, "cheda.db3");
 
     public bool IsInitialized => _connection is not null;
+
+    /// <summary>Awaitable that completes the moment the database is first opened.</summary>
+    public Task WhenReadyAsync() => _readyTcs.Task;
 
     public SQLiteConnection Db =>
         _connection ?? throw new InvalidOperationException(
@@ -58,12 +63,14 @@ public sealed class DatabaseService : IDisposable
 
             _connection = new SQLiteConnection(connStr);
             CreateSchema(_connection);
+            _readyTcs.TrySetResult();
         }
     }
 
     private static void CreateSchema(SQLiteConnection db)
     {
         db.CreateTable<TransactionEntity>();
+        MigrateTransactions(db);
         db.CreateTable<LearnedMappingEntity>();
         MigrateLearnedMappings(db);
         db.CreateTable<RecipientRuleEntity>();
@@ -73,6 +80,19 @@ public sealed class DatabaseService : IDisposable
         db.CreateTable<BillOccurrenceEntity>();
         db.CreateTable<SettingsEntity>();
         KenyaDefaultRules.SeedIfEmpty(db);
+    }
+
+    private static void MigrateTransactions(SQLiteConnection db)
+    {
+        var existing = db.GetTableInfo("Transactions")
+                         .Select(c => c.Name.ToLowerInvariant())
+                         .ToHashSet();
+        if (!existing.Contains("note"))
+            db.Execute("ALTER TABLE Transactions ADD COLUMN Note TEXT");
+        if (!existing.Contains("fulizalimit"))
+            db.Execute("ALTER TABLE Transactions ADD COLUMN FulizaLimit NUMERIC");
+        // SelfTransferSimSlot and SelfTransferBalanceAfter are added automatically by
+        // CreateTable<TransactionEntity>() — no explicit ALTER TABLE needed.
     }
 
     // sqlite-net-pcl 1.9.172 has no CreateFlags.MigrateTable.

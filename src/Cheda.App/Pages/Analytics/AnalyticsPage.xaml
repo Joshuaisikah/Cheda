@@ -3,167 +3,692 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:Cheda.App.Pages.Analytics"
+    xmlns:ctrl="clr-namespace:Cheda.App.Controls"
+    xmlns:conv="clr-namespace:Cheda.App.Converters"
     x:Class="Cheda.App.Pages.Analytics.AnalyticsPage"
     Title="Analytics"
     BackgroundColor="{StaticResource Background}">
 
+    <ContentPage.Resources>
+        <conv:EqualConverter x:Key="Eq"/>
+        <conv:NullToBoolConverter x:Key="NotNull"/>
+    </ContentPage.Resources>
+
     <Grid>
     <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
         <ScrollView BackgroundColor="{StaticResource Background}">
-            <VerticalStackLayout x:Name="ContentLayout" Padding="16" Spacing="16" Opacity="0">
+            <VerticalStackLayout x:Name="ContentLayout" Padding="0,0,0,32" Spacing="0" Opacity="0">
 
-                <!-- Summary cards -->
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                    <Border Grid.Column="0" Style="{StaticResource CardStyle}">
-                        <VerticalStackLayout Padding="14" Spacing="4">
-                            <Label Text="💸  Spent" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
-                            <Label Text="{Binding TotalSpent, StringFormat='Ksh {0:N0}'}"
-                                   FontAttributes="Bold" FontSize="16" TextColor="{StaticResource Danger}"/>
-                        </VerticalStackLayout>
-                    </Border>
-                    <Border Grid.Column="1" Style="{StaticResource CardStyle}">
-                        <VerticalStackLayout Padding="14" Spacing="4">
-                            <Label Text="💰  Received" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
-                            <Label Text="{Binding TotalIncome, StringFormat='Ksh {0:N0}'}"
-                                   FontAttributes="Bold" FontSize="16" TextColor="{StaticResource Success}"/>
-                        </VerticalStackLayout>
-                    </Border>
-                </Grid>
+                <!-- ── Page header ──────────────────────────────────────────── -->
+                <Label Text="Analytics"
+                       FontSize="28" FontAttributes="Bold"
+                       TextColor="{StaticResource TextPrimary}"
+                       Margin="20,52,20,12"/>
 
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                    <Border Grid.Column="0" Style="{StaticResource CardStyle}">
-                        <VerticalStackLayout Padding="14" Spacing="4">
-                            <Label Text="🏦  Fees" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
-                            <Label Text="{Binding TotalFees, StringFormat='Ksh {0:N0}'}"
-                                   FontAttributes="Bold" FontSize="16" TextColor="{StaticResource Warning}"/>
-                        </VerticalStackLayout>
-                    </Border>
-                    <Border Grid.Column="1" Style="{StaticResource CardStyle}">
-                        <VerticalStackLayout Padding="14" Spacing="4">
-                            <Label Text="📅  vs Last Month" TextColor="{StaticResource TextSecondary}" FontSize="12"/>
-                            <Label Text="{Binding MomLabel}" FontAttributes="Bold" FontSize="15"
-                                   TextColor="{StaticResource TextPrimary}"/>
-                        </VerticalStackLayout>
-                    </Border>
-                </Grid>
+                <!-- ── Period selector ─────────────────────────────────────── -->
+                <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never"
+                            Padding="16,0,16,16">
+                    <HorizontalStackLayout Spacing="8">
 
-                <!-- ── Daily spending chart ─────────────────────────── -->
-                <VerticalStackLayout Spacing="6">
-                    <Label FontAttributes="Bold" FontSize="16"
-                           TextColor="{StaticResource TextPrimary}" Margin="4,8,0,0">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="📊  Daily Spending — "/>
-                                <Span Text="{Binding ChartMonthLabel}"
-                                      TextColor="{StaticResource Primary}"/>
-                            </FormattedString>
-                        </Label.FormattedText>
-                    </Label>
+                        <Border Padding="14,8" StrokeShape="RoundRectangle 20" StrokeThickness="1">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=0}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}"/>
+                                    <Setter Property="Stroke" Value="Transparent"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=0}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Surface}"/>
+                                    <Setter Property="Stroke" Value="{StaticResource Divider}"/>
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectPeriodCommand}" CommandParameter="0"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="Last 7 Days" FontSize="12">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=0}" Value="True">
+                                        <Setter Property="TextColor" Value="White"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=0}" Value="False">
+                                        <Setter Property="TextColor" Value="{StaticResource TextSecondary}"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
 
-                    <Border Style="{StaticResource CardStyle}" Padding="12">
-                        <!-- Bar chart: each bar is a VerticalStackLayout with spacer + bar + label -->
-                        <CollectionView ItemsSource="{Binding DailyBars}"
-                                        ItemsLayout="HorizontalList"
-                                        HeightRequest="110">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="local:DailyBar">
-                                    <VerticalStackLayout WidthRequest="9" Spacing="0"
-                                                         VerticalOptions="End">
-                                        <!-- Invisible top spacer to push bar to the bottom -->
-                                        <BoxView Color="Transparent"
-                                                 HeightRequest="{Binding SpacerHeight}"
-                                                 WidthRequest="7"/>
-                                        <!-- The bar itself -->
-                                        <BoxView BackgroundColor="{Binding BarColor}"
-                                                 HeightRequest="{Binding BarHeight}"
-                                                 WidthRequest="7"
-                                                 CornerRadius="2"/>
-                                        <!-- Day label (only every 5th day) -->
-                                        <Label Text="{Binding DayLabel}"
-                                               FontSize="7" HorizontalOptions="Center"
-                                               TextColor="{StaticResource TextHint}"
-                                               Margin="0,2,0,0"/>
-                                    </VerticalStackLayout>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                    </Border>
+                        <Border Padding="14,8" StrokeShape="RoundRectangle 20" StrokeThickness="1">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=1}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}"/>
+                                    <Setter Property="Stroke" Value="Transparent"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=1}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Surface}"/>
+                                    <Setter Property="Stroke" Value="{StaticResource Divider}"/>
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectPeriodCommand}" CommandParameter="1"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="This Month" FontSize="12">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=1}" Value="True">
+                                        <Setter Property="TextColor" Value="White"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=1}" Value="False">
+                                        <Setter Property="TextColor" Value="{StaticResource TextSecondary}"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
 
-                    <!-- Legend -->
-                    <HorizontalStackLayout Spacing="16" HorizontalOptions="Center">
-                        <HorizontalStackLayout Spacing="4">
-                            <BoxView Color="#00875A" WidthRequest="10" HeightRequest="10"
-                                     CornerRadius="2" VerticalOptions="Center"/>
-                            <Label Text="Today" FontSize="11"
-                                   TextColor="{StaticResource TextSecondary}"/>
-                        </HorizontalStackLayout>
-                        <HorizontalStackLayout Spacing="4">
-                            <BoxView Color="#34D399" WidthRequest="10" HeightRequest="10"
-                                     CornerRadius="2" VerticalOptions="Center"/>
-                            <Label Text="Spent" FontSize="11"
-                                   TextColor="{StaticResource TextSecondary}"/>
-                        </HorizontalStackLayout>
+                        <Border Padding="14,8" StrokeShape="RoundRectangle 20" StrokeThickness="1">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=2}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}"/>
+                                    <Setter Property="Stroke" Value="Transparent"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=2}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Surface}"/>
+                                    <Setter Property="Stroke" Value="{StaticResource Divider}"/>
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectPeriodCommand}" CommandParameter="2"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="Last 30 Days" FontSize="12">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=2}" Value="True">
+                                        <Setter Property="TextColor" Value="White"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=2}" Value="False">
+                                        <Setter Property="TextColor" Value="{StaticResource TextSecondary}"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+
+                        <Border Padding="14,8" StrokeShape="RoundRectangle 20" StrokeThickness="1">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=3}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}"/>
+                                    <Setter Property="Stroke" Value="Transparent"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=3}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Surface}"/>
+                                    <Setter Property="Stroke" Value="{StaticResource Divider}"/>
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectPeriodCommand}" CommandParameter="3"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="Last 3 Months" FontSize="12">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=3}" Value="True">
+                                        <Setter Property="TextColor" Value="White"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=3}" Value="False">
+                                        <Setter Property="TextColor" Value="{StaticResource TextSecondary}"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+
+                        <Border Padding="14,8" StrokeShape="RoundRectangle 20" StrokeThickness="1">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=4}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}"/>
+                                    <Setter Property="Stroke" Value="Transparent"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=4}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Surface}"/>
+                                    <Setter Property="Stroke" Value="{StaticResource Divider}"/>
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectPeriodCommand}" CommandParameter="4"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="Last Year" FontSize="12">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=4}" Value="True">
+                                        <Setter Property="TextColor" Value="White"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=4}" Value="False">
+                                        <Setter Property="TextColor" Value="{StaticResource TextSecondary}"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+
+                        <Border Padding="14,8" StrokeShape="RoundRectangle 20" StrokeThickness="1">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=5}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Primary}"/>
+                                    <Setter Property="Stroke" Value="Transparent"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Border" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=5}" Value="False">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Surface}"/>
+                                    <Setter Property="Stroke" Value="{StaticResource Divider}"/>
+                                </DataTrigger>
+                            </Border.Triggers>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectPeriodCommand}" CommandParameter="5"/>
+                            </Border.GestureRecognizers>
+                            <Label Text="All Time" FontSize="12">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=5}" Value="True">
+                                        <Setter Property="TextColor" Value="White"/>
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding SelectedPeriodIndex, Converter={StaticResource Eq}, ConverterParameter=5}" Value="False">
+                                        <Setter Property="TextColor" Value="{StaticResource TextSecondary}"/>
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </Border>
+
                     </HorizontalStackLayout>
+                </ScrollView>
+
+                <!-- ── Sub-tab row ──────────────────────────────────────────── -->
+                <Grid ColumnDefinitions="*,*,*,*" BackgroundColor="{StaticResource Surface}">
+
+                    <VerticalStackLayout Grid.Column="0" Spacing="0">
+                        <VerticalStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="0"/>
+                        </VerticalStackLayout.GestureRecognizers>
+                        <Label Text="Overview" FontSize="13" HorizontalOptions="Center" Padding="0,12">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=0}" Value="True">
+                                    <Setter Property="TextColor" Value="{StaticResource Primary}"/>
+                                    <Setter Property="FontAttributes" Value="Bold"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=0}" Value="False">
+                                    <Setter Property="TextColor" Value="{StaticResource TextHint}"/>
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                        <BoxView HeightRequest="2" CornerRadius="1">
+                            <BoxView.Triggers>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=0}" Value="True">
+                                    <Setter Property="Color" Value="{StaticResource Primary}"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=0}" Value="False">
+                                    <Setter Property="Color" Value="Transparent"/>
+                                </DataTrigger>
+                            </BoxView.Triggers>
+                        </BoxView>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="0">
+                        <VerticalStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="1"/>
+                        </VerticalStackLayout.GestureRecognizers>
+                        <Label Text="Trends" FontSize="13" HorizontalOptions="Center" Padding="0,12">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=1}" Value="True">
+                                    <Setter Property="TextColor" Value="{StaticResource Primary}"/>
+                                    <Setter Property="FontAttributes" Value="Bold"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=1}" Value="False">
+                                    <Setter Property="TextColor" Value="{StaticResource TextHint}"/>
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                        <BoxView HeightRequest="2" CornerRadius="1">
+                            <BoxView.Triggers>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=1}" Value="True">
+                                    <Setter Property="Color" Value="{StaticResource Primary}"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=1}" Value="False">
+                                    <Setter Property="Color" Value="Transparent"/>
+                                </DataTrigger>
+                            </BoxView.Triggers>
+                        </BoxView>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="2" Spacing="0">
+                        <VerticalStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="2"/>
+                        </VerticalStackLayout.GestureRecognizers>
+                        <Label Text="Categories" FontSize="13" HorizontalOptions="Center" Padding="0,12">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=2}" Value="True">
+                                    <Setter Property="TextColor" Value="{StaticResource Primary}"/>
+                                    <Setter Property="FontAttributes" Value="Bold"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=2}" Value="False">
+                                    <Setter Property="TextColor" Value="{StaticResource TextHint}"/>
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                        <BoxView HeightRequest="2" CornerRadius="1">
+                            <BoxView.Triggers>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=2}" Value="True">
+                                    <Setter Property="Color" Value="{StaticResource Primary}"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=2}" Value="False">
+                                    <Setter Property="Color" Value="Transparent"/>
+                                </DataTrigger>
+                            </BoxView.Triggers>
+                        </BoxView>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="3" Spacing="0">
+                        <VerticalStackLayout.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectTabCommand}" CommandParameter="3"/>
+                        </VerticalStackLayout.GestureRecognizers>
+                        <Label Text="Payees" FontSize="13" HorizontalOptions="Center" Padding="0,12">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=3}" Value="True">
+                                    <Setter Property="TextColor" Value="{StaticResource Primary}"/>
+                                    <Setter Property="FontAttributes" Value="Bold"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=3}" Value="False">
+                                    <Setter Property="TextColor" Value="{StaticResource TextHint}"/>
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                        <BoxView HeightRequest="2" CornerRadius="1">
+                            <BoxView.Triggers>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=3}" Value="True">
+                                    <Setter Property="Color" Value="{StaticResource Primary}"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=3}" Value="False">
+                                    <Setter Property="Color" Value="Transparent"/>
+                                </DataTrigger>
+                            </BoxView.Triggers>
+                        </BoxView>
+                    </VerticalStackLayout>
+
+                </Grid>
+
+                <!-- ════════════════════════════════════════════════════════════
+                     OVERVIEW TAB
+                     ════════════════════════════════════════════════════════════ -->
+                <VerticalStackLayout Spacing="16" Padding="16,20,16,0"
+                    IsVisible="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=0}">
+
+                    <!-- Savings Rate -->
+                    <Border Style="{StaticResource CardStyle}" Padding="20,18">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="4">
+                            <Label Grid.Row="0" Grid.ColumnSpan="2" Text="SAVINGS RATE"
+                                   FontSize="11" FontAttributes="Bold"
+                                   TextColor="{StaticResource TextHint}" CharacterSpacing="1.5"/>
+                            <Label Grid.Row="1" Grid.Column="0"
+                                   Text="{Binding SavingsRateText}"
+                                   FontSize="46" FontAttributes="Bold"
+                                   TextColor="{Binding SavingsRateColor}" LineHeight="1"/>
+                            <VerticalStackLayout Grid.Row="1" Grid.Column="1"
+                                                 VerticalOptions="Center" Spacing="2" HorizontalOptions="End">
+                                <Label Text="{Binding SavingsNetAmount}"
+                                       FontSize="15" FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" HorizontalOptions="End"/>
+                                <Label Text="{Binding SavingsNetLabel}"
+                                       FontSize="11" TextColor="{StaticResource TextSecondary}" HorizontalOptions="End"/>
+                            </VerticalStackLayout>
+                            <Label Grid.Row="2" Grid.Column="0"
+                                   Text="{Binding SavingsRateDesc}"
+                                   FontSize="12" TextColor="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
+                            <ProgressBar Grid.Row="3" Grid.ColumnSpan="2"
+                                         Progress="{Binding SavingsProgress}"
+                                         ProgressColor="{Binding SavingsRateColor}"
+                                         HeightRequest="6" Margin="0,4,0,0"/>
+                            <Label Grid.Row="4" Grid.Column="0" Text="expenses" FontSize="10"
+                                   TextColor="{StaticResource TextHint}" Margin="0,4,0,0"/>
+                            <Label Grid.Row="4" Grid.Column="1" Text="income" FontSize="10"
+                                   TextColor="{StaticResource TextHint}" HorizontalOptions="End" Margin="0,4,0,0"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Income + Expenses -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="16,14">
+                            <VerticalStackLayout Spacing="6">
+                                <HorizontalStackLayout Spacing="6">
+                                    <Border WidthRequest="26" HeightRequest="26" BackgroundColor="#1A3D2B"
+                                            Stroke="Transparent" StrokeShape="RoundRectangle 13">
+                                        <Label Text="⬇️" FontSize="11"
+                                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                                    </Border>
+                                    <Label Text="INCOME" FontSize="10" FontAttributes="Bold"
+                                           TextColor="{StaticResource TextHint}" CharacterSpacing="1" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                                <Label Text="{Binding IncomeTotalLabel}" FontSize="18" FontAttributes="Bold" TextColor="#10B981"/>
+                                <Label Text="{Binding IncomeCountLabel}" FontSize="11" TextColor="{StaticResource TextHint}"/>
+                                <Border Padding="8,4" StrokeShape="RoundRectangle 8"
+                                        BackgroundColor="{StaticResource SurfaceVariant}" Stroke="Transparent"
+                                        IsVisible="{Binding IncomeChangeLabel, Converter={StaticResource NotNull}}">
+                                    <Label Text="{Binding IncomeChangeLabel}" FontSize="10"
+                                           TextColor="{StaticResource TextSecondary}"/>
+                                </Border>
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16,14">
+                            <VerticalStackLayout Spacing="6">
+                                <HorizontalStackLayout Spacing="6">
+                                    <Border WidthRequest="26" HeightRequest="26" BackgroundColor="#3D1515"
+                                            Stroke="Transparent" StrokeShape="RoundRectangle 13">
+                                        <Label Text="⬆️" FontSize="11"
+                                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                                    </Border>
+                                    <Label Text="EXPENSES" FontSize="10" FontAttributes="Bold"
+                                           TextColor="{StaticResource TextHint}" CharacterSpacing="1" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                                <Label Text="{Binding ExpenseTotalLabel}" FontSize="18" FontAttributes="Bold"
+                                       TextColor="{StaticResource Primary}"/>
+                                <Label Text="{Binding ExpenseCountLabel}" FontSize="11" TextColor="{StaticResource TextHint}"/>
+                                <Border Padding="8,4" StrokeShape="RoundRectangle 8"
+                                        BackgroundColor="{StaticResource SurfaceVariant}" Stroke="Transparent"
+                                        IsVisible="{Binding ExpenseChangeLabel, Converter={StaticResource NotNull}}">
+                                    <Label Text="{Binding ExpenseChangeLabel}" FontSize="10"
+                                           TextColor="{StaticResource TextSecondary}"/>
+                                </Border>
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+
+                    <!-- Quick Insights -->
+                    <Label Text="QUICK INSIGHTS" FontSize="11" FontAttributes="Bold"
+                           TextColor="{StaticResource TextHint}" CharacterSpacing="1.5" Margin="4,4,0,0"/>
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+                        <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardStyle}" Padding="16,14">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="📅" FontSize="22"/>
+                                <Label Text="Daily Spend" FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                                <Label Text="{Binding DailySpendLabel}" FontSize="16" FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}"/>
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16,14">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="🏆" FontSize="22"/>
+                                <Label Text="Top Category" FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                                <Label Text="{Binding TopCategoryLabel}" FontSize="14" FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" MaxLines="2" LineBreakMode="TailTruncation"/>
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardStyle}" Padding="16,14">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="💸" FontSize="22"/>
+                                <Label Text="Fees Paid" FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                                <Label Text="{Binding FeesPaidLabel}" FontSize="16" FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}"/>
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16,14">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="⚖️" FontSize="22"/>
+                                <Label Text="Avg Transaction" FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                                <Label Text="{Binding AvgTxLabel}" FontSize="16" FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}"/>
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+
+                    <!-- Savings Accounts -->
+                    <VerticalStackLayout Spacing="12" IsVisible="{Binding HasSavingsData}">
+                        <Label Text="SAVINGS ACCOUNTS" FontSize="11" FontAttributes="Bold"
+                               TextColor="{StaticResource TextHint}" CharacterSpacing="1.5" Margin="4,4,0,0"/>
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+                            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardStyle}" Padding="16,14">
+                                <VerticalStackLayout Spacing="5">
+                                    <Label Text="🔒" FontSize="20"/>
+                                    <Label Text="M-Shwari" FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                                    <Label Text="{Binding MShwariBalance}" FontSize="15" FontAttributes="Bold"
+                                           TextColor="{StaticResource TextPrimary}"/>
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16,14">
+                                <VerticalStackLayout Spacing="5">
+                                    <Label Text="🏦" FontSize="20"/>
+                                    <Label Text="KCB M-Pesa" FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                                    <Label Text="{Binding KcbBalance}" FontSize="15" FontAttributes="Bold"
+                                           TextColor="{StaticResource TextPrimary}"/>
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardStyle}" Padding="16,14">
+                                <VerticalStackLayout Spacing="5">
+                                    <Label Text="💰" FontSize="20"/>
+                                    <Label Text="Zidii" FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                                    <Label Text="{Binding ZidiiBalance}" FontSize="15" FontAttributes="Bold"
+                                           TextColor="{StaticResource TextPrimary}"/>
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16,14">
+                                <VerticalStackLayout Spacing="5">
+                                    <Label Text="🏛️" FontSize="20"/>
+                                    <Label Text="Equity" FontSize="11" TextColor="{StaticResource TextSecondary}"/>
+                                    <Label Text="{Binding EquityBalance}" FontSize="15" FontAttributes="Bold"
+                                           TextColor="{StaticResource TextPrimary}"/>
+                                </VerticalStackLayout>
+                            </Border>
+                        </Grid>
+                    </VerticalStackLayout>
+
                 </VerticalStackLayout>
 
-                <!-- ── Spending by category ─────────────────────────── -->
-                <Label Text="🏷️  By Category" FontAttributes="Bold" FontSize="16"
-                       TextColor="{StaticResource TextPrimary}" Margin="4,4,0,0"/>
+                <!-- ════════════════════════════════════════════════════════════
+                     TRENDS TAB — Monthly bar chart
+                     ════════════════════════════════════════════════════════════ -->
+                <VerticalStackLayout Spacing="16" Padding="16,20,16,0"
+                    IsVisible="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=1}">
 
-                <Border Style="{StaticResource CardStyle}">
-                    <CollectionView ItemsSource="{Binding Categories}">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="local:CategoryRow">
-                                <VerticalStackLayout Padding="16,10" Spacing="5">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <Label Grid.Column="0" Text="{Binding Category}"
-                                               TextColor="{StaticResource TextPrimary}" FontSize="13"
-                                               FontAttributes="Bold"/>
+                    <Label Text="Monthly Trend" FontSize="18" FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}"/>
+
+                    <Border Style="{StaticResource CardStyle}" Padding="16,16,16,12">
+                        <VerticalStackLayout Spacing="0">
+
+                            <!-- Chart area with faint grid lines -->
+                            <Grid HeightRequest="155">
+                                <!-- Horizontal grid lines at 25/50/75/100% -->
+                                <BoxView VerticalOptions="Start" HeightRequest="1" Margin="0,0,0,0"
+                                         BackgroundColor="{StaticResource Divider}" Opacity="0.4"/>
+                                <BoxView VerticalOptions="Start" HeightRequest="1" Margin="0,40,0,0"
+                                         BackgroundColor="{StaticResource Divider}" Opacity="0.3"/>
+                                <BoxView VerticalOptions="Start" HeightRequest="1" Margin="0,80,0,0"
+                                         BackgroundColor="{StaticResource Divider}" Opacity="0.3"/>
+                                <BoxView VerticalOptions="Start" HeightRequest="1" Margin="0,120,0,0"
+                                         BackgroundColor="{StaticResource Divider}" Opacity="0.4"/>
+
+                                <!-- Bars -->
+                                <CollectionView ItemsSource="{Binding MonthlyBars}"
+                                                ItemsLayout="HorizontalList">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="local:MonthlyBar">
+                                            <VerticalStackLayout WidthRequest="52" Spacing="0" Margin="4,0">
+                                                <Grid ColumnDefinitions="20,4,20" HeightRequest="120">
+                                                    <VerticalStackLayout Grid.Column="0" Spacing="0">
+                                                        <BoxView Color="Transparent"
+                                                                 HeightRequest="{Binding IncomeSpacer}" WidthRequest="20"/>
+                                                        <BoxView BackgroundColor="#9A7060"
+                                                                 HeightRequest="{Binding IncomeHeight}" WidthRequest="20"
+                                                                 CornerRadius="3,3,0,0"/>
+                                                    </VerticalStackLayout>
+                                                    <VerticalStackLayout Grid.Column="2" Spacing="0">
+                                                        <BoxView Color="Transparent"
+                                                                 HeightRequest="{Binding ExpenseSpacer}" WidthRequest="20"/>
+                                                        <BoxView BackgroundColor="#F4B8A0"
+                                                                 HeightRequest="{Binding ExpenseHeight}" WidthRequest="20"
+                                                                 CornerRadius="3,3,0,0"/>
+                                                    </VerticalStackLayout>
+                                                </Grid>
+                                                <Label Text="{Binding MonthLabel}" FontSize="10"
+                                                       HorizontalOptions="Center"
+                                                       TextColor="{StaticResource TextHint}"
+                                                       Margin="0,5,0,0"/>
+                                            </VerticalStackLayout>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                    <CollectionView.EmptyView>
+                                        <Label Text="No data for this period."
+                                               TextColor="{StaticResource TextHint}" FontSize="13"
+                                               HorizontalOptions="Center" VerticalOptions="Center"
+                                               Margin="0,40"/>
+                                    </CollectionView.EmptyView>
+                                </CollectionView>
+                            </Grid>
+
+                            <!-- Legend -->
+                            <HorizontalStackLayout Spacing="24" HorizontalOptions="Center" Margin="0,12,0,0">
+                                <HorizontalStackLayout Spacing="8">
+                                    <BoxView Color="#9A7060" WidthRequest="12" HeightRequest="12"
+                                             CornerRadius="6" VerticalOptions="Center"/>
+                                    <Label Text="Income" FontSize="12" TextColor="{StaticResource TextSecondary}"
+                                           VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="8">
+                                    <BoxView Color="#F4B8A0" WidthRequest="12" HeightRequest="12"
+                                             CornerRadius="6" VerticalOptions="Center"/>
+                                    <Label Text="Expenses" FontSize="12" TextColor="{StaticResource TextSecondary}"
+                                           VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                            </HorizontalStackLayout>
+
+                        </VerticalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+
+                <!-- ════════════════════════════════════════════════════════════
+                     CATEGORIES TAB
+                     ════════════════════════════════════════════════════════════ -->
+                <VerticalStackLayout Spacing="16" Padding="16,20,16,0"
+                    IsVisible="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=2}">
+
+                    <Label Text="Spending by Category" FontSize="18" FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}"/>
+
+                    <!-- Donut chart + legend -->
+                    <Border Style="{StaticResource CardStyle}" Padding="16,20">
+                        <VerticalStackLayout Spacing="16">
+
+                            <!-- Donut chart -->
+                            <ctrl:DonutChartView Items="{Binding CategoryChart}"
+                                                 HeightRequest="200" WidthRequest="200"
+                                                 HorizontalOptions="Center"/>
+
+                            <!-- Legend rows -->
+                            <VerticalStackLayout Spacing="0"
+                                                 BindableLayout.ItemsSource="{Binding CategoryChart}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="local:CategoryChartRow">
+                                        <Grid ColumnDefinitions="Auto,*,Auto,Auto"
+                                              Padding="0,6" ColumnSpacing="10">
+                                            <BoxView Grid.Column="0"
+                                                     Color="{Binding AccentColor}"
+                                                     WidthRequest="10" HeightRequest="10"
+                                                     CornerRadius="5" VerticalOptions="Center"/>
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding Category}"
+                                                   FontSize="13" TextColor="{StaticResource TextPrimary}"
+                                                   VerticalOptions="Center" LineBreakMode="TailTruncation"/>
+                                            <Label Grid.Column="2"
+                                                   Text="{Binding PctLabel}"
+                                                   FontSize="13" FontAttributes="Bold"
+                                                   TextColor="{Binding AccentColor}"
+                                                   VerticalOptions="Center" MinimumWidthRequest="40"
+                                                   HorizontalTextAlignment="End"/>
+                                            <Label Grid.Column="3"
+                                                   Text="{Binding TotalLabel}"
+                                                   FontSize="12" TextColor="{StaticResource TextSecondary}"
+                                                   VerticalOptions="Center" MinimumWidthRequest="80"
+                                                   HorizontalTextAlignment="End"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Category list with color bars -->
+                    <Label Text="TOP SPENDING CATEGORIES" FontSize="11" FontAttributes="Bold"
+                           TextColor="{StaticResource TextHint}" CharacterSpacing="1.5" Margin="4,0,0,0"/>
+
+                    <VerticalStackLayout Spacing="8"
+                                         BindableLayout.ItemsSource="{Binding CategoryChart}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="local:CategoryChartRow">
+                                <Border Style="{StaticResource CardStyle}" Padding="0">
+                                    <Grid ColumnDefinitions="4,*" ColumnSpacing="0">
+                                        <BoxView Grid.Column="0" BackgroundColor="{Binding AccentColor}"
+                                                 CornerRadius="14,0,14,0"/>
+                                        <Grid Grid.Column="1" ColumnDefinitions="*,Auto" Padding="14,12">
+                                            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                                <Label Text="{Binding Category}"
+                                                       FontSize="13" FontAttributes="Bold"
+                                                       TextColor="{StaticResource TextPrimary}"
+                                                       MaxLines="1" LineBreakMode="TailTruncation"/>
+                                                <Label Text="{Binding TotalLabel}"
+                                                       FontSize="13" TextColor="{Binding AccentColor}"
+                                                       FontAttributes="Bold"/>
+                                            </VerticalStackLayout>
+                                            <Label Grid.Column="1" Text="{Binding PctLabel}"
+                                                   FontSize="16" FontAttributes="Bold"
+                                                   TextColor="{StaticResource TextHint}"
+                                                   VerticalOptions="Center" HorizontalOptions="End"/>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+
+                <!-- ════════════════════════════════════════════════════════════
+                     PAYEES TAB
+                     ════════════════════════════════════════════════════════════ -->
+                <VerticalStackLayout Spacing="12" Padding="16,20,16,0"
+                    IsVisible="{Binding SelectedTabIndex, Converter={StaticResource Eq}, ConverterParameter=3}">
+
+                    <Label Text="Top Payees" FontSize="18" FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}"/>
+
+                    <VerticalStackLayout Spacing="8"
+                                         BindableLayout.ItemsSource="{Binding Top}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource CardStyle}" Padding="16,14">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                        <VerticalStackLayout Grid.Column="0" Spacing="3">
+                                            <Label Text="{Binding Name}"
+                                                   FontAttributes="Bold" FontSize="14"
+                                                   TextColor="{StaticResource TextPrimary}"
+                                                   MaxLines="1" LineBreakMode="TailTruncation"/>
+                                            <Label FontSize="12" TextColor="{StaticResource TextHint}">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="{Binding TransactionCount}"/>
+                                                        <Span Text=" transaction"/>
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                        </VerticalStackLayout>
                                         <Label Grid.Column="1"
                                                Text="{Binding Total, StringFormat='Ksh {0:N0}'}"
-                                               FontSize="13" TextColor="{StaticResource TextSecondary}"/>
-                                    </Grid>
-                                    <ProgressBar Progress="{Binding Share}" ProgressColor="{StaticResource Primary}"
-                                                 HeightRequest="8"/>
-                                </VerticalStackLayout>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </Border>
-
-                <!-- ── Top Merchants ───────────────────────────────── -->
-                <Label Text="🏪  Top Merchants" FontAttributes="Bold" FontSize="16"
-                       TextColor="{StaticResource TextPrimary}" Margin="4,4,0,0"/>
-
-                <Border Style="{StaticResource CardStyle}">
-                    <CollectionView ItemsSource="{Binding Top}">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnDefinitions="Auto,*,Auto" Padding="16,12" ColumnSpacing="12">
-                                    <Border Grid.Column="0" WidthRequest="32" HeightRequest="32"
-                                            BackgroundColor="{StaticResource SurfaceVariant}"
-                                            Stroke="Transparent" StrokeShape="RoundRectangle 8">
-                                        <Label Text="🏪" FontSize="14" HorizontalOptions="Center"
+                                               FontSize="14" FontAttributes="Bold"
+                                               TextColor="{StaticResource Primary}"
                                                VerticalOptions="Center"/>
-                                    </Border>
-                                    <Label Grid.Column="1" Text="{Binding Name}"
-                                           TextColor="{StaticResource TextPrimary}"
-                                           VerticalOptions="Center"/>
-                                    <Label Grid.Column="2"
-                                           Text="{Binding Total, StringFormat='Ksh {0:N0}'}"
-                                           TextColor="{StaticResource TextSecondary}"
-                                           FontAttributes="Bold" VerticalOptions="Center"/>
-                                </Grid>
+                                    </Grid>
+                                </Border>
                             </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </Border>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
 
-                <BoxView HeightRequest="24" Color="Transparent"/>
+                    <Label Text="No payee data for this period."
+                           TextColor="{StaticResource TextHint}" FontSize="13"
+                           HorizontalOptions="Center" Margin="0,24"
+                           IsVisible="{Binding Top.Count, Converter={StaticResource Eq}, ConverterParameter=0}"/>
+
+                </VerticalStackLayout>
+
             </VerticalStackLayout>
         </ScrollView>
     </RefreshView>
 
+    <!-- First-load overlay -->
     <Grid x:Name="LoadingOverlay" BackgroundColor="{StaticResource Background}">
         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="16">
             <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}"

@@ -53,10 +53,10 @@ public sealed class AlertEvaluator : IAlertEvaluator
         return new AppAlert
         {
             Type  = AlertType.LargeTransaction,
-            Title = "Large transaction",
+            Title = $"Large transaction — Ksh {tx.Amount:N0}",
             Body  = tx.Counterparty is not null
-                ? $"Ksh {tx.Amount:N0} to {tx.Counterparty}"
-                : $"Ksh {tx.Amount:N0} — {tx.TransactionCode}",
+                ? $"Sent to {tx.Counterparty}. New balance: {FormatBalance(tx)}"
+                : $"Transaction {tx.TransactionCode}. New balance: {FormatBalance(tx)}",
         };
     }
 
@@ -66,8 +66,8 @@ public sealed class AlertEvaluator : IAlertEvaluator
         return new AppAlert
         {
             Type  = AlertType.FulizaDrawdown,
-            Title = "Fuliza used",
-            Body  = $"You borrowed Ksh {tx.Amount:N0} via Fuliza M-PESA.",
+            Title = $"Fuliza — Ksh {tx.Amount:N0} borrowed",
+            Body  = $"You used Fuliza M-PESA. Repay early to avoid interest charges.",
         };
     }
 
@@ -88,20 +88,24 @@ public sealed class AlertEvaluator : IAlertEvaluator
             var status = _budgetEngine.GetStatus(budget, allTx, range);
             if (status.AlertLevel == AlertLevel.None) continue;
 
-            var levelText = status.AlertLevel switch
+            var (levelText, emoji) = status.AlertLevel switch
             {
-                AlertLevel.Overspent => "exceeded",
-                AlertLevel.Red       => "90% reached",
-                AlertLevel.Amber     => "75% reached",
-                _                    => null,
+                AlertLevel.Overspent => ("exceeded",    "🔴"),
+                AlertLevel.Red       => ("at 90%",      "🟠"),
+                AlertLevel.Amber     => ("at 75%",      "🟡"),
+                _                    => (null, null),
             };
             if (levelText is null) continue;
+
+            var remaining = status.AmountRemaining >= 0
+                ? $"Ksh {status.AmountRemaining:N0} left"
+                : $"Ksh {-status.AmountRemaining:N0} over budget";
 
             yield return new AppAlert
             {
                 Type     = AlertType.BudgetBreach,
-                Title    = $"{budget.Category} budget {levelText}",
-                Body     = $"Spent Ksh {status.AmountSpent:N0} of Ksh {budget.MonthlyLimit:N0} ({status.ProgressPercent:F0}%).",
+                Title    = $"{emoji} {budget.Category} {levelText}",
+                Body     = $"Spent Ksh {status.AmountSpent:N0} of Ksh {budget.MonthlyLimit:N0} — {remaining}.",
                 Category = budget.Category,
             };
         }
@@ -109,24 +113,32 @@ public sealed class AlertEvaluator : IAlertEvaluator
 
     private static AppAlert? CheckNewTransaction(Transaction tx)
     {
-        var verb = tx.Type switch
+        var (verb, prep) = tx.Type switch
         {
-            TransactionType.Received => "received",
-            TransactionType.Sent
-                or TransactionType.PaidTill
-                or TransactionType.PaidPaybill
-                or TransactionType.Airtime => "sent",
-            _ => null,
+            TransactionType.Received                                => ("received", "From"),
+            TransactionType.Sent                                    => ("sent",     "To"),
+            TransactionType.PaidTill or TransactionType.PaidPaybill => ("paid",     "To"),
+            TransactionType.Airtime                                 => ("for airtime", ""),
+            _ => (null, null),
         };
         if (verb is null) return null;
+
+        var counterLine = tx.Counterparty is not null && prep != ""
+            ? $"{prep} {tx.Counterparty}"
+            : tx.Counterparty ?? tx.TransactionCode;
+        var balanceLine = FormatBalance(tx);
+        var body = balanceLine is not null
+            ? $"{counterLine}. Balance: {balanceLine}"
+            : counterLine;
 
         return new AppAlert
         {
             Type  = AlertType.NewTransaction,
-            Title = $"M-PESA Ksh {tx.Amount:N0} {verb}",
-            Body  = tx.Counterparty is not null
-                ? $"{(verb == "received" ? "From" : "To")} {tx.Counterparty}"
-                : tx.TransactionCode,
+            Title = $"Ksh {tx.Amount:N0} {verb}",
+            Body  = body,
         };
     }
+
+    private static string? FormatBalance(Transaction tx) =>
+        tx.BalanceAfter.HasValue ? $"Ksh {tx.BalanceAfter.Value:N0}" : null;
 }

@@ -23,5 +23,6 @@ public interface ITransactionRepository
 
     void Update(Transaction transaction);
     void Delete(Guid id);
+    void DeleteAll();
     int Count();
 }

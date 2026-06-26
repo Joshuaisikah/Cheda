@@ -14,19 +14,31 @@ public partial class DashboardPage : ContentPage
 
     protected override async void OnAppearing()
     {
-        await _vm.RefreshAsync();
         if (!_hasLoaded)
         {
-            _hasLoaded               = true;
-            LoadingOverlay.IsVisible = false;
-
-            // Start from below + invisible, animate up into place
-            ContentLayout.Opacity     = 0;
+            _hasLoaded             = true;
+            ContentLayout.Opacity      = 0;
             ContentLayout.TranslationY = 24;
-
+            _ = PulseCurrencyAsync();
+            await _vm.RefreshAsync();
             await Task.WhenAll(
+                LoadingOverlay.FadeToAsync(0, 320, Easing.CubicIn),
                 ContentLayout.FadeToAsync(1, 400, Easing.CubicOut),
                 ContentLayout.TranslateToAsync(0, 0, 350, Easing.CubicOut));
+            LoadingOverlay.IsVisible = false;
+        }
+        else
+        {
+            await _vm.RefreshAsync();
+        }
+    }
+
+    private async Task PulseCurrencyAsync()
+    {
+        while (LoadingOverlay.IsVisible)
+        {
+            await CurrencyLabel.ScaleTo(1.25, 700, Easing.SinInOut);
+            await CurrencyLabel.ScaleTo(1.00, 700, Easing.SinInOut);
         }
     }
 }

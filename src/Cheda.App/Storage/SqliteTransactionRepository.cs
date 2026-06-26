@@ -75,6 +75,9 @@ public sealed class SqliteTransactionRepository : ITransactionRepository
     public void Delete(Guid id) =>
         Db.Delete<TransactionEntity>(id.ToString());
 
+    public void DeleteAll() =>
+        Db.DeleteAll<TransactionEntity>();
+
     public int Count() =>
         Db.Table<TransactionEntity>().Count();
 }

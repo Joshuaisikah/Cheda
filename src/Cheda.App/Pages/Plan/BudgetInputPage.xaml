@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Cheda.App.Pages.Plan.BudgetInputPage"
+    BackgroundColor="#99000000">
+
+    <!-- Semi-transparent scrim — tap outside to cancel -->
+    <Grid>
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Tapped="OnScrimTapped"/>
+        </Grid.GestureRecognizers>
+
+        <!-- Bottom sheet card -->
+        <Border BackgroundColor="{StaticResource Surface}"
+                Stroke="{StaticResource Divider}" StrokeThickness="1"
+                StrokeShape="RoundRectangle 24,24,0,0"
+                VerticalOptions="End">
+
+            <VerticalStackLayout Padding="24,20,24,40" Spacing="20">
+
+                <!-- Handle bar -->
+                <BoxView WidthRequest="40" HeightRequest="4"
+                         BackgroundColor="{StaticResource Divider}"
+                         CornerRadius="2"
+                         HorizontalOptions="Center"
+                         Margin="0,0,0,4"/>
+
+                <!-- Category header -->
+                <HorizontalStackLayout Spacing="12" HorizontalOptions="Center">
+                    <Border WidthRequest="44" HeightRequest="44"
+                            BackgroundColor="{StaticResource SurfaceVariant}"
+                            Stroke="Transparent" StrokeShape="RoundRectangle 22">
+                        <Label x:Name="EmojiLabel" FontSize="22"
+                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                    </Border>
+                    <Label x:Name="TitleLabel"
+                           FontAttributes="Bold" FontSize="18"
+                           TextColor="{StaticResource TextPrimary}"
+                           VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+
+                <Label x:Name="SubtitleLabel"
+                       FontSize="13"
+                       TextColor="{StaticResource TextSecondary}"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"/>
+
+                <!-- Amount input -->
+                <Border BackgroundColor="{StaticResource SurfaceVariant}"
+                        Stroke="{StaticResource Primary}" StrokeThickness="1.5"
+                        StrokeShape="RoundRectangle 12"
+                        Padding="16,0">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Label Grid.Column="0" Text="Ksh"
+                               FontSize="17" FontAttributes="Bold"
+                               TextColor="{StaticResource Primary}"
+                               VerticalOptions="Center"
+                               Margin="0,0,8,0"/>
+                        <Entry Grid.Column="1"
+                               x:Name="AmountEntry"
+                               Placeholder="0"
+                               PlaceholderColor="{StaticResource TextHint}"
+                               TextColor="{StaticResource TextPrimary}"
+                               BackgroundColor="Transparent"
+                               Keyboard="Numeric"
+                               FontSize="20" FontAttributes="Bold"
+                               HeightRequest="56"
+                               ReturnType="Done"
+                               ReturnCommand="{Binding SaveCommand}"/>
+                    </Grid>
+                </Border>
+
+                <Label x:Name="ErrorLabel"
+                       FontSize="12" TextColor="{StaticResource Danger}"
+                       HorizontalOptions="Center"
+                       IsVisible="False"/>
+
+                <!-- Actions -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Button Grid.Column="0"
+                            Text="Cancel"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Clicked="OnCancelClicked"/>
+                    <Button Grid.Column="1"
+                            Text="Save Budget"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Clicked="OnSaveClicked"/>
+                </Grid>
+
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+
+</ContentPage>

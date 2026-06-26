@@ -174,11 +174,21 @@ public sealed class AlertEvaluatorTests
     }
 
     [Fact]
-    public void Evaluate_new_transaction_disabled_by_default_no_alert()
+    public void Evaluate_new_transaction_enabled_by_default_fires_alert()
     {
         var tx = MakeTx(type: TransactionType.Received, amount: 1_000m);
 
         Evaluator.Evaluate(tx, [tx], [], Defaults, Now)
+            .Should().Contain(a => a.Type == AlertType.NewTransaction);
+    }
+
+    [Fact]
+    public void Evaluate_new_transaction_explicitly_disabled_no_alert()
+    {
+        var tx = MakeTx(type: TransactionType.Received, amount: 1_000m);
+        var s  = new NotificationSettings { NewTransactionEnabled = false };
+
+        Evaluator.Evaluate(tx, [tx], [], s, Now)
             .Should().NotContain(a => a.Type == AlertType.NewTransaction);
     }
 

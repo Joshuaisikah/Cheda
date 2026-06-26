@@ -47,10 +47,13 @@ public sealed partial class RuleBasedCategorizer : ICategorizer
             string.Equals(m.Key, key, StringComparison.OrdinalIgnoreCase));
         if (exact is not null)
         {
-            // Each additional user confirmation nudges base confidence up, capped at 0.99.
-            var baseConf   = Math.Min(0.90 + (exact.ConfirmationCount - 1) * 0.01, 0.99);
+            // Anonymous keys (amount+time banded) start at lower base confidence
+            // and earn trust more slowly — a name confirms identity, a band only suggests it.
+            var isAnon   = exact.Key.StartsWith("anon:", StringComparison.Ordinal);
+            var baseConf = isAnon
+                ? Math.Min(0.65 + (exact.ConfirmationCount - 1) * 0.05, 0.90)
+                : Math.Min(0.90 + (exact.ConfirmationCount - 1) * 0.01, 0.99);
             // Temporal signals (amount band + time-of-day) are soft additive boosts only.
-            // They never override explicit rules and never create a confident-but-wrong result.
             var temporal   = ComputeTemporalBoost(exact, tx);
             var confidence = Math.Min(baseConf + temporal, 0.99);
             return Make(exact.Category, confidence, $"Learned: {exact.Key}");
@@ -148,6 +151,10 @@ public sealed partial class RuleBasedCategorizer : ICategorizer
 
     private static LearnedMapping? FindSimilar(string key, IReadOnlyList<LearnedMapping> mappings)
     {
+        // Anonymous (amount+time banded) keys use exact matching only — similarity
+        // search would incorrectly bleed "morning Ksh40" into "afternoon Ksh500".
+        if (key.StartsWith("anon:", StringComparison.Ordinal)) return null;
+
         var keyTokens = Tokenize(key);
         if (keyTokens.Count == 0) return null;
 
@@ -156,6 +163,8 @@ public sealed partial class RuleBasedCategorizer : ICategorizer
 
         foreach (var m in mappings)
         {
+            if (m.Key.StartsWith("anon:", StringComparison.Ordinal)) continue;
+
             var mTokens = Tokenize(m.Key);
             if (mTokens.Count == 0) continue;
 
@@ -177,9 +186,11 @@ public sealed partial class RuleBasedCategorizer : ICategorizer
 
     // ── Mapping key extraction ───────────────────────────────────────────────
     // Key is stable across re-sends to the same recipient:
-    //   Till payments   → "till:123456"
-    //   Paybill payments → "paybill:888880/54321"
-    //   Person transfers → normalized name (numbers stripped)
+    //   Till payments        → "till:123456"
+    //   Paybill payments     → "paybill:888880/54321"
+    //   Named person         → normalized name (numbers stripped)
+    //   Anonymous (no name)  → "anon:{type}:{amtBand}:{timeBand}"
+    //                          so "Ksh40 at 8am" and "Ksh500 at 3pm" learn separately
 
     [GeneratedRegex(@"\(Till\s+(\d+)\)", RegexOptions.IgnoreCase)]
     private static partial Regex TillInCounterparty();
@@ -192,7 +203,8 @@ public sealed partial class RuleBasedCategorizer : ICategorizer
 
     public static string MappingKey(Transaction tx)
     {
-        if (tx.Counterparty is null) return $"type:{tx.Type}";
+        if (tx.Counterparty is null)
+            return AnonKey(tx);
 
         var till = TillInCounterparty().Match(tx.Counterparty);
         if (till.Success) return $"till:{till.Groups[1].Value}";
@@ -205,8 +217,31 @@ public sealed partial class RuleBasedCategorizer : ICategorizer
             .Trim()
             .ToLowerInvariant();
         normalized = string.Join(" ", normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        return normalized.Length > 0 ? normalized : $"type:{tx.Type}";
+        return normalized.Length > 0 ? normalized : AnonKey(tx);
     }
+
+    // Anonymous key encodes transaction type + amount band + time-of-day band.
+    // Two anonymous transactions that share all three bands share a learned mapping.
+    private static string AnonKey(Transaction tx) =>
+        $"anon:{(int)tx.Type}:{AnonAmountBand(tx.Amount)}:{AnonTimeBand(tx.Timestamp.LocalDateTime.Hour)}";
+
+    private static string AnonAmountBand(decimal amount) => amount switch
+    {
+        <= 50   => "a0",    // tiny  : loose change, short bus fare (≤Ksh50)
+        <= 200  => "a1",    // small : typical matatu, food, airtime top-up
+        <= 600  => "a2",    // medium: groceries, mid-range purchases
+        <= 2000 => "a3",    // large : utilities, rent installment
+        _       => "a4",    // xlarge: major transfers
+    };
+
+    private static string AnonTimeBand(int hour) => hour switch
+    {
+        >= 5  and < 10 => "t0",  // early morning / morning commute
+        >= 10 and < 14 => "t1",  // late morning / lunch
+        >= 14 and < 19 => "t2",  // afternoon / evening commute
+        >= 19 and < 22 => "t3",  // evening
+        _              => "t4",  // night
+    };
 
     // ── Temporal boost (soft, additive, max +0.10) ───────────────────────────
     // These signals confirm what the learned mapping already knows. They never

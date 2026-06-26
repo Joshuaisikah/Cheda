@@ -1,29 +1,33 @@
+using Android.Content;
+using AndroidX.Biometric;
+using AndroidX.Core.Content;
 using Cheda.Core.Security;
-using Plugin.Fingerprint;
-using Plugin.Fingerprint.Abstractions;
+using Java.Lang;
 
 namespace Cheda.App.Platforms.Android.Security;
 
 /// <summary>
-/// Biometric authentication backed by Plugin.Fingerprint (AndroidX BiometricPrompt).
-/// Requires the app to be in the foreground — call only from a visible Activity context.
+/// Biometric authentication using AndroidX BiometricPrompt directly.
+/// Uses the no-arg CanAuthenticate() (available in 1.0.0) which accepts any enrolled
+/// biometric — including in-display optical / ultrasonic fingerprint sensors.
 /// </summary>
 internal sealed class AndroidBiometricService : IBiometricService
 {
-    // Use Task.Run to avoid blocking the UI thread (GetResult on async inside a sync property
-    // causes a deadlock on the main thread on some MIUI versions).
-    // Allow alternative authentication (face/fingerprint) — MIUI may report fingerprint
-    // under allowAlternativeAuthentication:true even when strict biometric returns false.
+    // BiometricPrompt error codes (stable Android API constants)
+    private const int ErrorNegativeButton = 13;  // user tapped "Use PIN instead"
+    private const int ErrorUserCanceled   = 10;  // user dismissed
+    private const int ErrorCanceled       = 5;   // system cancelled (e.g. screen off)
+
     public bool IsAvailable
     {
         get
         {
             try
             {
-                return Task.Run(async () =>
-                    await CrossFingerprint.Current.IsAvailableAsync(
-                        allowAlternativeAuthentication: true))
-                    .GetAwaiter().GetResult();
+                var mgr = BiometricManager.From(global::Android.App.Application.Context);
+#pragma warning disable CS0618 // no-arg CanAuthenticate deprecated in 1.1.0, fine on 1.0.0
+                return mgr.CanAuthenticate() == 0; // 0 = BIOMETRIC_SUCCESS
+#pragma warning restore CS0618
             }
             catch { return false; }
         }
@@ -32,29 +36,59 @@ internal sealed class AndroidBiometricService : IBiometricService
     public async Task<BiometricResult> AuthenticateAsync(
         string reason, CancellationToken ct = default)
     {
-        try
+        var tcs = new TaskCompletionSource<BiometricResult>();
+
+        await MainThread.InvokeOnMainThreadAsync(() =>
         {
-            var config = new AuthenticationRequestConfiguration("Unlock Cheda", reason)
+            var activity = Platform.CurrentActivity;
+            if (activity is not AndroidX.Fragment.App.FragmentActivity fa)
             {
-                AllowAlternativeAuthentication = false, // prompt shows biometric only
-            };
+                tcs.TrySetResult(BiometricResult.Error("Activity not available."));
+                return;
+            }
 
-            var result = await CrossFingerprint.Current.AuthenticateAsync(config, ct);
+            var executor = ContextCompat.GetMainExecutor(fa);
+            var callback  = new BioCallback(tcs);
+            var prompt    = new BiometricPrompt(fa, executor, callback);
 
-            if (result.Authenticated)
-                return BiometricResult.Success;
+            var info = new BiometricPrompt.PromptInfo.Builder()
+                .SetTitle("Unlock Cheda")
+                .SetSubtitle(reason)
+                .SetNegativeButtonText("Use PIN instead")
+                .SetConfirmationRequired(false)   // accept fingerprint immediately, no extra tap
+                .Build();
 
-            return result.Status == FingerprintAuthenticationResultStatus.Canceled
+            prompt.Authenticate(info);
+        });
+
+        using var reg = ct.Register(() => tcs.TrySetResult(BiometricResult.Cancelled));
+        return await tcs.Task;
+    }
+
+    private sealed class BioCallback : BiometricPrompt.AuthenticationCallback
+    {
+        private readonly TaskCompletionSource<BiometricResult> _tcs;
+        public BioCallback(TaskCompletionSource<BiometricResult> tcs) => _tcs = tcs;
+
+        public override void OnAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) =>
+            _tcs.TrySetResult(BiometricResult.Success);
+
+        public override void OnAuthenticationError(int errMsgId, ICharSequence? errString)
+        {
+            // ErrorNegativeButton = user tapped "Use PIN instead" — explicit PIN choice.
+            // ErrorUserCanceled / ErrorCanceled = dismissed without choosing — allow retry.
+            if (errMsgId == ErrorNegativeButton)
+            {
+                _tcs.TrySetResult(BiometricResult.PinFallback);
+                return;
+            }
+            var cancelled = errMsgId is ErrorUserCanceled or ErrorCanceled;
+            _tcs.TrySetResult(cancelled
                 ? BiometricResult.Cancelled
-                : BiometricResult.Error(result.ErrorMessage ?? "Authentication failed.");
+                : BiometricResult.Error(errString?.ToString() ?? "Biometric error"));
         }
-        catch (OperationCanceledException)
-        {
-            return BiometricResult.Cancelled;
-        }
-        catch (Exception ex)
-        {
-            return BiometricResult.Error(ex.Message);
-        }
+
+        // Individual failed attempt — keep the prompt open (Android handles retries).
+        public override void OnAuthenticationFailed() { }
     }
 }

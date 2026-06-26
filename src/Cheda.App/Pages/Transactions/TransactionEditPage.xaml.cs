@@ -6,7 +6,6 @@ public partial class TransactionEditPage : ContentPage
 {
     public TransactionEditPage(TransactionEditViewModel vm)
     {
-        BackgroundColor = Color.FromArgb("#0F172A");
         InitializeComponent();
         BindingContext = vm;
         RefreshCategoryChip(vm.SelectedCategory);
@@ -23,7 +22,8 @@ public partial class TransactionEditPage : ContentPage
             RefreshCategoryChip(picker.SelectedCategory);
             await vm.SaveCategoryAsync();
         };
-        await Navigation.PushModalAsync(picker);
+        // Push as normal navigation — the system back gesture pops it automatically.
+        await Shell.Current.Navigation.PushAsync(picker);
     }
 
     private void RefreshCategoryChip(string? category)
@@ -32,9 +32,4 @@ public partial class TransactionEditPage : ContentPage
         CategoryChipLabel.Text = $"{emoji}  {category ?? "Uncategorized"}";
     }
 
-    protected override bool OnBackButtonPressed()
-    {
-        _ = Navigation.PopAsync();
-        return true;
-    }
 }

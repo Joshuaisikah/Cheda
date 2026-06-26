@@ -10,84 +10,128 @@
     <Grid>
     <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsBusy}">
         <ScrollView BackgroundColor="{StaticResource Background}">
-            <VerticalStackLayout x:Name="ContentLayout" Spacing="0" Opacity="0">
+            <VerticalStackLayout x:Name="ContentLayout" Spacing="0">
 
-                <!-- ── Hero header ─────────────────────────────────────── -->
+                <!-- ── Balance hero card ─────────────────────────────── -->
                 <Border BackgroundColor="{StaticResource Surface}"
-                        Stroke="Transparent" Padding="20,24,20,20">
+                        Stroke="{StaticResource Divider}" StrokeThickness="1"
+                        StrokeShape="RoundRectangle 20"
+                        Margin="12,52,12,0" Padding="20,20,20,16">
                     <VerticalStackLayout Spacing="0">
-                        <!-- Brand row -->
-                        <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,20">
-                            <Border Grid.Column="0"
-                                    WidthRequest="34" HeightRequest="34"
-                                    BackgroundColor="{StaticResource Primary}"
-                                    StrokeShape="RoundRectangle 9" Stroke="Transparent">
-                                <Label Text="₵" FontSize="19" FontAttributes="Bold"
-                                       TextColor="White" HorizontalOptions="Center"
-                                       VerticalOptions="Center"/>
-                            </Border>
-                            <Label Grid.Column="1" Text="Cheda"
-                                   FontSize="17" FontAttributes="Bold"
-                                   TextColor="{StaticResource TextPrimary}"
-                                   VerticalOptions="Center" Margin="10,0,0,0"/>
-                            <Label Grid.Column="2" Text="{Binding MonthLabel}"
-                                   FontSize="11" TextColor="{StaticResource TextHint}"
-                                   VerticalOptions="Center"/>
+
+                        <!-- Total Balance label -->
+                        <Label Text="Total Balance"
+                               FontSize="13" TextColor="{StaticResource TextSecondary}"
+                               HorizontalOptions="Center" Margin="0,0,0,6"/>
+
+                        <!-- Big balance amount -->
+                        <Label Text="{Binding Balance, StringFormat='Ksh{0:N2}'}"
+                               FontSize="40" FontAttributes="Bold"
+                               TextColor="{StaticResource Primary}"
+                               HorizontalOptions="Center" Margin="0,0,0,16"/>
+
+                        <!-- Money In / Money Out -->
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}" Margin="0,0,0,14"/>
+                        <Grid ColumnDefinitions="*,1,*" Margin="0,0,0,14">
+                            <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="3">
+                                <Label Text="Money In" FontSize="11"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalOptions="Center"/>
+                                <Label FontSize="16" FontAttributes="Bold"
+                                       TextColor="{StaticResource Primary}"
+                                       HorizontalOptions="Center">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="↑ "/>
+                                            <Span Text="{Binding MoneyInLabel}"/>
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Label Text="{Binding MoneyInChange}"
+                                       FontSize="10" TextColor="{StaticResource Warning}"
+                                       HorizontalOptions="Center"
+                                       IsVisible="{Binding MoneyInChange, Converter={StaticResource NullToBoolConverter}}"/>
+                            </VerticalStackLayout>
+                            <BoxView Grid.Column="1" WidthRequest="1"
+                                     BackgroundColor="{StaticResource Divider}"
+                                     VerticalOptions="Fill"/>
+                            <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="3">
+                                <Label Text="Money Out" FontSize="11"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalOptions="Center"/>
+                                <Label FontSize="16" FontAttributes="Bold"
+                                       TextColor="{StaticResource Primary}"
+                                       HorizontalOptions="Center">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="↓ "/>
+                                            <Span Text="{Binding MoneyOutLabel}"/>
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Label Text="{Binding MoneyOutChange}"
+                                       FontSize="10" TextColor="{StaticResource Warning}"
+                                       HorizontalOptions="Center"
+                                       IsVisible="{Binding MoneyOutChange, Converter={StaticResource NullToBoolConverter}}"/>
+                            </VerticalStackLayout>
                         </Grid>
 
-                        <!-- Balance label + amount -->
-                        <Label Text="M-Pesa Balance"
-                               TextColor="{StaticResource TextSecondary}" FontSize="12"/>
-                        <Label Text="{Binding Balance, StringFormat='Ksh {0:N2}'}"
-                               FontSize="34" FontAttributes="Bold"
-                               TextColor="{StaticResource Primary}" Margin="0,4,0,0"/>
+                        <!-- SIM 1 / SIM 2 -->
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}" Margin="0,0,0,12"/>
+                        <Grid ColumnDefinitions="*,1,*" Margin="0,0,0,12">
+                            <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="2">
+                                <Label Text="SIM 1" FontSize="11"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="{Binding Sim1Balance}"
+                                       FontAttributes="Bold" FontSize="14"
+                                       TextColor="{StaticResource TextPrimary}"
+                                       HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                            <BoxView Grid.Column="1" WidthRequest="1"
+                                     BackgroundColor="{StaticResource Divider}"
+                                     VerticalOptions="Fill"/>
+                            <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="2"
+                                                  IsVisible="{Binding HasSim2}">
+                                <Label Text="SIM 2" FontSize="11"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="{Binding Sim2Balance}"
+                                       FontAttributes="Bold" FontSize="14"
+                                       TextColor="{StaticResource TextPrimary}"
+                                       HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Grid>
 
-                        <!-- Net flow pill -->
-                        <Border Padding="12,5" HorizontalOptions="Start" Margin="0,12,0,0"
-                                StrokeShape="RoundRectangle 20" StrokeThickness="1"
-                                BackgroundColor="{StaticResource SurfaceVariant}"
-                                Stroke="{StaticResource Divider}">
-                            <Label Text="{Binding NetFlowLabel}"
-                                   TextColor="{Binding NetFlowColor}"
-                                   FontSize="12" FontAttributes="Bold"/>
-                        </Border>
+                        <!-- Fuliza row -->
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}" Margin="0,0,0,12"/>
+                        <HorizontalStackLayout Spacing="8" HorizontalOptions="Center" Margin="0,0,0,4">
+                            <Label Text="💳" FontSize="14" VerticalOptions="Center"/>
+                            <Label Text="Fuliza" FontSize="13" FontAttributes="Bold"
+                                   TextColor="{StaticResource Success}"
+                                   VerticalOptions="Center"/>
+                            <Label Text="{Binding FulizaStatusText}" FontSize="13"
+                                   TextColor="{StaticResource Success}"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        <Label Text="{Binding FulizaLimitInfo}"
+                               FontSize="11" TextColor="{StaticResource TextHint}"
+                               HorizontalOptions="Center"
+                               IsVisible="{Binding FulizaLimitInfo, Converter={StaticResource NullToBoolConverter}}"/>
+
+                        <!-- Timestamp -->
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}" Margin="0,10,0,10"/>
+                        <HorizontalStackLayout Spacing="6" HorizontalOptions="Center">
+                            <Label Text="🕐" FontSize="12"/>
+                            <Label Text="{Binding LastRefreshed}" FontSize="12"
+                                   TextColor="{StaticResource TextHint}"/>
+                        </HorizontalStackLayout>
+
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Divider -->
-                <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}"/>
-
-                <!-- ── Spent / Received ─────────────────────────────────── -->
-                <Grid ColumnDefinitions="*,*">
-                    <Border Grid.Column="0" BackgroundColor="{StaticResource Surface}"
-                            Padding="16,14" Stroke="Transparent">
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="↑  Spent" FontSize="11"
-                                   TextColor="{StaticResource TextHint}"/>
-                            <Label Text="{Binding SpentThisMonth, StringFormat='Ksh {0:N0}'}"
-                                   FontAttributes="Bold" FontSize="17"
-                                   TextColor="{StaticResource Danger}"/>
-                        </VerticalStackLayout>
-                    </Border>
-                    <BoxView Grid.Column="0" WidthRequest="1" HorizontalOptions="End"
-                             BackgroundColor="{StaticResource Divider}"/>
-                    <Border Grid.Column="1" BackgroundColor="{StaticResource Surface}"
-                            Padding="16,14" Stroke="Transparent">
-                        <VerticalStackLayout Spacing="4">
-                            <Label Text="↓  Received" FontSize="11"
-                                   TextColor="{StaticResource TextHint}"/>
-                            <Label Text="{Binding ReceivedThisMonth, StringFormat='Ksh {0:N0}'}"
-                                   FontAttributes="Bold" FontSize="17"
-                                   TextColor="{StaticResource Success}"/>
-                        </VerticalStackLayout>
-                    </Border>
-                </Grid>
-
-                <!-- Divider -->
-                <BoxView HeightRequest="1" BackgroundColor="{StaticResource Divider}"/>
-
-                <!-- ── Review alert ────────────────────────────────────── -->
-                <Border Margin="16,14,16,0" Padding="14,12"
+                <!-- ── Review alert ───────────────────────────────────── -->
+                <Border Margin="12,12,12,0" Padding="14,12"
                         BackgroundColor="{StaticResource PrimaryLight}"
                         Stroke="{StaticResource Primary}" StrokeThickness="1"
                         StrokeShape="RoundRectangle 12"
@@ -106,10 +150,44 @@
                     </Grid>
                 </Border>
 
-                <!-- ── Recent transactions ─────────────────────────────── -->
-                <Grid ColumnDefinitions="*,Auto" Margin="16,18,16,8">
+                <!-- ── Today's Insights ───────────────────────────────── -->
+                <Label Text="TODAY'S INSIGHTS"
+                       FontSize="11" FontAttributes="Bold" CharacterSpacing="1.5"
+                       TextColor="{StaticResource TextSecondary}"
+                       Margin="16,20,16,8"
+                       IsVisible="{Binding Insights.Count, Converter={StaticResource GreaterThanZeroConverter}}"/>
+
+                <CollectionView ItemsSource="{Binding Insights}"
+                                HeightRequest="110"
+                                Margin="8,0,8,0"
+                                IsVisible="{Binding Insights.Count, Converter={StaticResource GreaterThanZeroConverter}}">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10"/>
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="local:InsightCard">
+                            <Border BackgroundColor="{StaticResource Surface}"
+                                    Stroke="Transparent" StrokeShape="RoundRectangle 14"
+                                    WidthRequest="200" Padding="14,12">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="{Binding Icon}" FontSize="22"/>
+                                    <Label Text="{Binding Title}"
+                                           FontAttributes="Bold" FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           LineBreakMode="WordWrap" MaxLines="2"/>
+                                    <Label Text="{Binding Subtitle}"
+                                           FontSize="11" TextColor="{StaticResource TextSecondary}"
+                                           LineBreakMode="WordWrap"/>
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- ── Recent Transactions ────────────────────────────── -->
+                <Grid ColumnDefinitions="*,Auto" Margin="16,20,16,8">
                     <Label Grid.Column="0" Text="Recent Transactions"
-                           FontAttributes="Bold" FontSize="16"
+                           FontAttributes="Bold" FontSize="18"
                            TextColor="{StaticResource TextPrimary}"/>
                     <Label Grid.Column="1" Text="View All"
                            FontSize="13" TextColor="{StaticResource Primary}"
@@ -130,47 +208,76 @@
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.OpenDetailCommand}"
                                         CommandParameter="{Binding .}"/>
                                 </Border.GestureRecognizers>
-                                <Grid ColumnDefinitions="4,Auto,*,Auto" ColumnSpacing="0">
+                                <Grid ColumnDefinitions="4,Auto,*" ColumnSpacing="0">
+
                                     <!-- Accent bar -->
                                     <BoxView Grid.Column="0"
                                              BackgroundColor="{Binding AccentColor}"
                                              CornerRadius="14,0,14,0"/>
-                                    <!-- Type icon -->
-                                    <Border Grid.Column="1"
-                                            WidthRequest="38" HeightRequest="38"
-                                            BackgroundColor="{StaticResource SurfaceVariant}"
-                                            Stroke="Transparent" StrokeShape="RoundRectangle 19"
-                                            Margin="10,10,0,10" VerticalOptions="Center">
-                                        <Label Text="{Binding TypeIcon}" FontSize="17"
-                                               HorizontalOptions="Center" VerticalOptions="Center"/>
-                                    </Border>
-                                    <!-- Type + counterparty -->
+
+                                    <!-- Icon circle with badge -->
+                                    <Grid Grid.Column="1" WidthRequest="48" HeightRequest="48"
+                                          Margin="10,12,0,12" VerticalOptions="Center">
+                                        <Border WidthRequest="48" HeightRequest="48"
+                                                BackgroundColor="{StaticResource SurfaceVariant}"
+                                                Stroke="Transparent" StrokeShape="RoundRectangle 24">
+                                            <Label Text="{Binding CategoryIcon}" FontSize="22"
+                                                   HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Border>
+                                        <Border WidthRequest="20" HeightRequest="20"
+                                                BackgroundColor="{Binding AccentColor}"
+                                                Stroke="{StaticResource Surface}" StrokeThickness="1.5"
+                                                StrokeShape="RoundRectangle 10"
+                                                HorizontalOptions="End" VerticalOptions="End"
+                                                Margin="0,0,-2,-2">
+                                            <Label Text="{Binding TypeIcon}" FontSize="8" FontAttributes="Bold"
+                                                   TextColor="White"
+                                                   HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Content -->
                                     <VerticalStackLayout Grid.Column="2"
-                                                         Margin="10,10,4,10" Spacing="2"
+                                                         Margin="10,12,12,12" Spacing="2"
                                                          VerticalOptions="Center">
-                                        <Label Text="{Binding TypeLabel}"
-                                               FontAttributes="Bold" FontSize="13"
-                                               TextColor="{StaticResource TextPrimary}"
-                                               MaxLines="1" LineBreakMode="TailTruncation"/>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0"
+                                                   Text="{Binding TypeLabel}"
+                                                   FontAttributes="Bold" FontSize="13"
+                                                   TextColor="{StaticResource TextPrimary}"
+                                                   MaxLines="1" LineBreakMode="TailTruncation"/>
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding AmountLabel}"
+                                                   FontAttributes="Bold" FontSize="13"
+                                                   TextColor="{Binding AmountColor}"
+                                                   HorizontalOptions="End"/>
+                                        </Grid>
                                         <Label Text="{Binding Counterparty}"
-                                               FontSize="11" TextColor="{StaticResource Primary}"
+                                               FontSize="12" TextColor="{StaticResource Primary}"
                                                MaxLines="1" LineBreakMode="TailTruncation"/>
-                                        <Label Text="{Binding Category}"
-                                               FontSize="10" TextColor="{StaticResource TextHint}"/>
+                                        <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,0">
+                                            <HorizontalStackLayout Grid.Column="0" Spacing="6">
+                                                <Label Text="{Binding TimeLabel}" FontSize="10"
+                                                       TextColor="{StaticResource TextHint}"
+                                                       VerticalOptions="Center"/>
+                                                <Border Padding="6,2"
+                                                        BackgroundColor="{StaticResource SurfaceVariant}"
+                                                        Stroke="Transparent" StrokeShape="RoundRectangle 6">
+                                                    <Label Text="{Binding CategoryDisplay}" FontSize="10"
+                                                           TextColor="{StaticResource TextSecondary}"/>
+                                                </Border>
+                                            </HorizontalStackLayout>
+                                            <Border Grid.Column="1" Padding="6,2"
+                                                    BackgroundColor="{StaticResource SurfaceVariant}"
+                                                    Stroke="Transparent" StrokeShape="RoundRectangle 6"
+                                                    IsVisible="{Binding HasSim}"
+                                                    VerticalOptions="Center">
+                                                <Label Text="{Binding SimDisplay}" FontSize="10"
+                                                       TextColor="{StaticResource TextSecondary}"/>
+                                            </Border>
+                                        </Grid>
                                     </VerticalStackLayout>
-                                    <!-- Amount + date -->
-                                    <VerticalStackLayout Grid.Column="3"
-                                                         HorizontalOptions="End"
-                                                         Spacing="2" VerticalOptions="Center"
-                                                         Margin="0,0,12,0">
-                                        <Label Text="{Binding AmountLabel}"
-                                               FontAttributes="Bold" FontSize="13"
-                                               TextColor="{Binding AmountColor}"
-                                               HorizontalOptions="End"/>
-                                        <Label Text="{Binding TimeLabel}" FontSize="10"
-                                               TextColor="{StaticResource TextHint}"
-                                               HorizontalOptions="End"/>
-                                    </VerticalStackLayout>
+
                                 </Grid>
                             </Border>
                         </DataTemplate>
@@ -182,7 +289,7 @@
                             <Label Text="No transactions yet."
                                    FontSize="15" TextColor="{StaticResource TextSecondary}"
                                    HorizontalOptions="Center"/>
-                            <Label Text="Go to Settings → Import SMS to get started."
+                            <Label Text="Go to Settings → Scan Messages to get started."
                                    FontSize="12" TextColor="{StaticResource TextHint}"
                                    HorizontalOptions="Center"/>
                         </VerticalStackLayout>
@@ -194,18 +301,42 @@
         </ScrollView>
     </RefreshView>
 
-    <!-- First-load overlay -->
+    <!-- Full-screen loading overlay shown until first data load completes -->
     <Grid x:Name="LoadingOverlay" BackgroundColor="{StaticResource Background}">
-        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
-            <Border WidthRequest="64" HeightRequest="64"
+        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="0">
+
+            <!-- Logo card — matches startup animation -->
+            <Border WidthRequest="88" HeightRequest="88"
                     BackgroundColor="{StaticResource Primary}"
-                    StrokeShape="RoundRectangle 18" Stroke="Transparent">
-                <Label Text="₵" FontSize="38" FontAttributes="Bold"
-                       TextColor="White" HorizontalOptions="Center"
-                       VerticalOptions="Center"/>
+                    StrokeShape="RoundRectangle 24" Stroke="Transparent"
+                    HorizontalOptions="Center">
+                <Label Text="₵" FontSize="52" FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalOptions="Center" VerticalOptions="Center"/>
             </Border>
-            <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}"
-                               WidthRequest="32" HeightRequest="32"/>
+
+            <Label Text="CHEDA" FontSize="13" FontAttributes="Bold"
+                   CharacterSpacing="5"
+                   TextColor="{StaticResource TextSecondary}"
+                   HorizontalOptions="Center" Margin="0,14,0,0"/>
+
+            <Label Text="Money. Clear." FontSize="12"
+                   TextColor="{StaticResource TextSecondary}"
+                   HorizontalOptions="Center" Margin="0,4,0,48"
+                   Opacity="0.5"/>
+
+            <!-- Spinner -->
+            <Grid WidthRequest="56" HeightRequest="56" HorizontalOptions="Center">
+                <ActivityIndicator IsRunning="True"
+                                   Color="{StaticResource Primary}"
+                                   WidthRequest="56" HeightRequest="56"
+                                   HorizontalOptions="Center" VerticalOptions="Center"/>
+                <Label x:Name="CurrencyLabel"
+                       Text="₵" FontSize="22" FontAttributes="Bold"
+                       TextColor="{StaticResource Primary}"
+                       HorizontalOptions="Center" VerticalOptions="Center"/>
+            </Grid>
+
         </VerticalStackLayout>
     </Grid>
     </Grid>

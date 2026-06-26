@@ -21,6 +21,15 @@ public sealed class AnalyticsEngine : IAnalyticsEngine
                or TransactionType.PaidPaybill
                or TransactionType.Airtime;
 
+    /// <summary>
+    /// Returns true for savings-product transfers that move money but should not
+    /// appear as an expense or income in any spending/income total.
+    /// </summary>
+    public static bool IsSavingsTransfer(Transaction t) =>
+        t.Type is TransactionType.MShwari
+               or TransactionType.KcbMpesa
+               or TransactionType.Zidii;
+
     // ── Summary ──────────────────────────────────────────────────────────────
 
     public PeriodSummary GetSummary(IReadOnlyList<Transaction> transactions, DateRange range)

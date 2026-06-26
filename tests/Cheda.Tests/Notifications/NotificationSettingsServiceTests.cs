@@ -17,7 +17,7 @@ public sealed class NotificationSettingsServiceTests
         s.BudgetBreachEnabled.Should().BeTrue();
         s.LargeTransactionEnabled.Should().BeTrue();
         s.FulizaAlertEnabled.Should().BeTrue();
-        s.NewTransactionEnabled.Should().BeFalse();
+        s.NewTransactionEnabled.Should().BeTrue();
         s.DailyDigestEnabled.Should().BeTrue();
         s.WeeklyReportEnabled.Should().BeFalse();
         s.QuietHoursEnabled.Should().BeFalse();

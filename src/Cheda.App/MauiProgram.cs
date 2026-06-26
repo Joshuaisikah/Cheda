@@ -1,7 +1,6 @@
 using Cheda.App.Converters;
 using Cheda.App.Pages.Analytics;
 using Cheda.App.Pages.Dashboard;
-using Cheda.App.Pages.Insights;
 using Cheda.App.Pages.Lock;
 using Cheda.App.Pages.Onboarding;
 using Cheda.App.Pages.Plan;
@@ -14,7 +13,6 @@ using Cheda.Core.Analytics;
 using Cheda.Core.Bills;
 using Cheda.Core.Budgets;
 using Cheda.Core.Categorization;
-using Cheda.Core.Insights;
 using Cheda.Core.Notifications;
 using Cheda.Core.Parsing;
 using Cheda.Core.Parsing.Parsers;
@@ -93,7 +91,6 @@ public static class MauiProgram
         services.AddSingleton<IAnalyticsEngine, AnalyticsEngine>();
         services.AddSingleton<IBudgetEngine,    BudgetEngine>();
         services.AddSingleton<IBillEngine,      BillEngine>();
-        services.AddSingleton<IInsightsEngine,  InsightsEngine>();
     }
 
     private static void RegisterSms(IServiceCollection services)
@@ -129,7 +126,6 @@ public static class MauiProgram
         services.AddTransient<ReviewQueueViewModel>();
         services.AddTransient<AnalyticsViewModel>();
         services.AddTransient<PlanViewModel>();
-        services.AddTransient<InsightsViewModel>();
         services.AddTransient<SettingsViewModel>();
 
         // Shell (singleton — one instance for the authenticated session)
@@ -143,7 +139,6 @@ public static class MauiProgram
         services.AddTransient<ReviewQueuePage>();
         services.AddTransient<AnalyticsPage>();
         services.AddTransient<PlanPage>();
-        services.AddTransient<InsightsPage>();
         services.AddTransient<SettingsPage>();
     }
 }

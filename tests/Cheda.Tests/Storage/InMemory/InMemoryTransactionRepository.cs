@@ -56,5 +56,7 @@ public sealed class InMemoryTransactionRepository : ITransactionRepository
             _store.Remove(key);
     }
 
+    public void DeleteAll() => _store.Clear();
+
     public int Count() => _store.Count;
 }
